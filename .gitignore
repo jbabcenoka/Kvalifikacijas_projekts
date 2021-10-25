@@ -1,0 +1,23 @@
+bin
+\bin
+*.json
+*.suo
+ obj
+\obj
+/obj
+Debug
+*.user
+.log
+/node_modules
+\node_modules
+/.sass-cache
+.sass-cache
+packages/
+*.[Cc]ache
+*.dll
+*.cache
+*.dll
+*.exe
+*.pdb
+/build/
+_ReSharper.*/

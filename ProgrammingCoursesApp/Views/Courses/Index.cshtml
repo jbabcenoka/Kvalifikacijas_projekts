@@ -1,0 +1,67 @@
+﻿@model IEnumerable<ProgrammingCoursesApp.Models.Course>
+
+@{
+    ViewData["Title"] = "Kursi";
+}
+
+<h1>Kursi</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Description)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsOpened)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.IsOpened)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="row row-flex">
+    @foreach (var item in Model)
+    {
+        <div class="col-sm-4" style="margin-top:20px">
+            <div class="card">
+                <div class="card-header" style="background-color:#eaf2ff">
+                    <h5 class="card-title text-center text-dark" style="padding-top:5px; padding-bottom:5px; margin-bottom:0px;">@Html.DisplayFor(modelItem => item.Name)</h5>
+                </div>
+                <div class="card-body bg-light">
+                    <p class="card-text text-justify">@Html.DisplayFor(modelItem => item.Description)</p>
+                </div>
+                <div class="card-footer text-center">
+                    <a asp-action="CourseTopics" asp-route-id="@item.Id" class="btn btn-primary" width="40%">Learn</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
