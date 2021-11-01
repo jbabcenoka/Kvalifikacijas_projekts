@@ -24,11 +24,6 @@ namespace ProgrammingCoursesApp.Controllers
             return RedirectToAction(nameof(CoursesController.Index), "Courses");
         }
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

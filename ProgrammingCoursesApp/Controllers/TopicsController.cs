@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -19,22 +21,19 @@ namespace ProgrammingCoursesApp.Controllers
             _context = context;
         }
 
-        // GET: Topics
-        public async Task<IActionResult> Index()
-        {
-            return View(await _context.Topics.ToListAsync());
-        }
-
-        public async Task<IActionResult> Topics(int? id)
+        // GET: Topics/1
+        public async Task<IActionResult> Index(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var courseTopics = (IEnumerable<Topic>)await _context.Courses.Where(c => c.Id == id).Include(c => c.Topics).Select(c => c.Topics).ToListAsync();
+            var course = await _context.Courses.Where(c => c.Id == id).Include(t => t.Topics).FirstOrDefaultAsync();
 
-            return View(courseTopics);
+            //var courseTopics = await _context.Topics.Where(c => c.Course.Id == id).Include(c => c.Course).ToListAsync();
+
+            return View("Topics", course);
         }
 
         // GET: Topics/Details/5
@@ -55,29 +54,75 @@ namespace ProgrammingCoursesApp.Controllers
             return View(topic);
         }
 
-        // GET: Topics/Create
-        public IActionResult Create()
+        // GET: Topics/Create/1
+        [Authorize]
+        public IActionResult Create(int? id)
         {
-            return View();
+            if (id == null)
+            {
+                return NotFound();
+            }
+            
+            var course = _context.Courses.Where(c => c.Id == id).Include(c => c.User).FirstOrDefault();
+            
+            if (course == null)
+            {
+                return NotFound();
+            }
+
+            if (course.User.Id != User.Identity.GetUserId())
+            {
+                return NotFound();
+            }
+
+            var topic = new Topic
+            {
+                Course = course
+            };
+
+            return View(topic);
         }
 
         // POST: Topics/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Description,IsOpened")] Topic topic)
+        [Authorize]
+        public async Task<IActionResult> Create([Bind("Id,Name,Description")] Topic topic, int? courseId)
         {
-            if (ModelState.IsValid)
+            var course = _context.Courses.Where(c => c.Id == courseId).Include(u => u.User).FirstOrDefault();
+
+            if (course == null)
             {
-                _context.Add(topic);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return NotFound();
             }
+
+            if (course.User.Id != User.Identity.GetUserId())
+            {
+               return NotFound();
+            }
+
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    topic.IsOpened = false;
+                    topic.User = await _context.Users.FirstOrDefaultAsync(u => u.Id == User.Identity.GetUserId());
+                    topic.Course = course;
+                    _context.Add(topic);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+            catch
+            {
+                throw;
+            }
+
             return View(topic);
         }
 
         // GET: Topics/Edit/5
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -94,8 +139,6 @@ namespace ProgrammingCoursesApp.Controllers
         }
 
         // POST: Topics/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,IsOpened")] Topic topic)

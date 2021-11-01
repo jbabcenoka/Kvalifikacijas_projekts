@@ -20,7 +20,7 @@ namespace ProgrammingCoursesApp
         }
 
         // GET: TopicBlocks
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? id)
         {
             return View(await _context.TopicBlocks.ToListAsync());
         }
