@@ -22,7 +22,8 @@ namespace ProgrammingCoursesApp
         // GET: TopicBlocks
         public async Task<IActionResult> Index(int? id)
         {
-            return View(await _context.TopicBlocks.ToListAsync());
+            var topicBlocks = await _context.TopicBlocks.Where(t => t.TopicId == id).ToListAsync();
+            return View(topicBlocks);
         }
 
         // GET: TopicBlocks/Details/5

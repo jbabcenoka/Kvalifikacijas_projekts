@@ -1,20 +1,20 @@
-﻿@model ProgrammingCoursesApp.Models.Topic
+﻿@model ProgrammingCoursesApp.Models.Course
 
 @{
-    ViewData["Title"] = "Topic creation";
-
+    ViewData["Title"] = "Course edit";
 }
 
-<h2>Topic creation</h2>
-<hr />
+<h2>Course "@(Model.Name)" edit</h2>
 
+<hr />
 <div class="row">
     <div class="col-md-6">
-        <form asp-action="Create" asp-route-courseId="@Model.Course.Id">
+        <form asp-action="EditCourse">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
             <div class="form-group">
                 <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" autocomplete="off" />
+                <input asp-for="Name" class="form-control" autocomplete="off"/>
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -22,14 +22,18 @@
                 <textarea asp-for="Description" class="form-control" rows="4" autocomplete="off"></textarea>
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="IsOpened" /> Publish course
+                </label>
+            </div>
             <div class="form-group">
-                <a class="btn btn-info" asp-action="Index">Back to topics</a>
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <a class="btn btn-info" asp-action="UserCourses">Back to my courses</a>
+                <input type="submit" value="Save" class="btn btn-primary" />
             </div>
         </form>
     </div>
 </div>
-
 <style>
     h2 {
         display: flex;
@@ -37,6 +41,7 @@
         margin-top: 50px;
         margin-bottom: 30px;
     }
+
 </style>
 
 @section Scripts {

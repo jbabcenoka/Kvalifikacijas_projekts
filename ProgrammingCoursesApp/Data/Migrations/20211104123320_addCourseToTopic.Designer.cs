@@ -10,8 +10,8 @@ using ProgrammingCoursesApp.Data;
 namespace ProgrammingCoursesApp.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20211101140805_userForCourse")]
-    partial class userForCourse
+    [Migration("20211104123320_addCourseToTopic")]
+    partial class addCourseToTopic
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -335,9 +335,14 @@ namespace ProgrammingCoursesApp.Data.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CourseId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Topics");
                 });
@@ -484,7 +489,13 @@ namespace ProgrammingCoursesApp.Data.Migrations
                         .WithMany("Topics")
                         .HasForeignKey("CourseId");
 
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
                     b.Navigation("Course");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ProgrammingCoursesApp.Models.TopicBlock", b =>

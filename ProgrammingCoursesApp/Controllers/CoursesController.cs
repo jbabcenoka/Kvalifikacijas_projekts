@@ -56,17 +56,17 @@ namespace ProgrammingCoursesApp.Controllers
             return View(course);
         }
 
-        // GET: Courses/Create
-        public IActionResult Create()
+        // GET: Courses/CreateCourse
+        public IActionResult CreateCourse()
         {
             return View();
         }
 
-        // POST: Courses/Create
+        // POST: Courses/CreateCourse
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Description")] Course course)
+        public async Task<IActionResult> CreateCourse([Bind("Id,Name,Description")] Course course)
         {
             try 
             {
@@ -74,7 +74,6 @@ namespace ProgrammingCoursesApp.Controllers
                 {
                     course.IsOpened = false;
                     course.User = await _context.Users.FirstOrDefaultAsync(u => u.Id == User.Identity.GetUserId());
-
                     _context.Add(course);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(UserCourses));
@@ -90,7 +89,7 @@ namespace ProgrammingCoursesApp.Controllers
 
         // GET: Courses/Edit/5
         [Authorize]
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> EditCourse(int? id)
         {
             if (id == null)
             {
@@ -116,7 +115,7 @@ namespace ProgrammingCoursesApp.Controllers
         // POST: Courses/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,IsOpened")] Course course)
+        public async Task<IActionResult> EditCourse(int id, [Bind("Id,Name,Description,IsOpened")] Course course)
         {
             if (id != course.Id)
             {
@@ -141,13 +140,13 @@ namespace ProgrammingCoursesApp.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(UserCourses));
             }
             return View(course);
         }
 
         // GET: Courses/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> DeleteCourse(int? id)
         {
             if (id == null)
             {

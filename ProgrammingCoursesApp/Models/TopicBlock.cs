@@ -10,6 +10,7 @@ namespace ProgrammingCoursesApp.Models
         public int Id { get; set; }
         public int DisplayOrder { get; set; }
         public int Points { get; set; }
+        public Topic Topic { get; set; }
         public ICollection<Task> Tasks { get; set; }
     }
 }

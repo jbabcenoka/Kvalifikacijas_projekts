@@ -31,9 +31,26 @@ namespace ProgrammingCoursesApp.Controllers
 
             var course = await _context.Courses.Where(c => c.Id == id).Include(t => t.Topics).FirstOrDefaultAsync();
 
-            //var courseTopics = await _context.Topics.Where(c => c.Course.Id == id).Include(c => c.Course).ToListAsync();
-
             return View("Topics", course);
+        }
+
+        public async Task<IActionResult> TopicsForCreator(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            //iegūt kursu ar tēmām
+            var course = await _context.Courses.Where(c => c.Id == id).Include(t => t.Topics).Include(u => u.User).FirstOrDefaultAsync();
+
+            //ja tas nav kursa veidotāja kurss
+            if (course.User.Id != User.Identity.GetUserId())
+            {
+                return NotFound();
+            }
+
+            return View("TopicsForCreator", course);
         }
 
         // GET: Topics/Details/5
@@ -54,29 +71,32 @@ namespace ProgrammingCoursesApp.Controllers
             return View(topic);
         }
 
-        // GET: Topics/Create/1
+        // GET: Topics/CreateTopic/1
         [Authorize]
-        public IActionResult Create(int? id)
+        public IActionResult CreateTopic(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
             
+            //iegūt kursu
             var course = _context.Courses.Where(c => c.Id == id).Include(c => c.User).FirstOrDefault();
-            
+
             if (course == null)
             {
                 return NotFound();
             }
 
+            //ja kurss nepieder kursa veidotajam - nevar pievienot tēmu
             if (course.User.Id != User.Identity.GetUserId())
             {
                 return NotFound();
             }
 
-            var topic = new Topic
+            var topic = new Topic()
             {
+                CourseId = course.Id,
                 Course = course
             };
 
@@ -87,30 +107,18 @@ namespace ProgrammingCoursesApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> Create([Bind("Id,Name,Description")] Topic topic, int? courseId)
+        public async Task<IActionResult> CreateTopic([Bind("CourseId,Name,Description")] Topic topic)
         {
-            var course = _context.Courses.Where(c => c.Id == courseId).Include(u => u.User).FirstOrDefault();
-
-            if (course == null)
-            {
-                return NotFound();
-            }
-
-            if (course.User.Id != User.Identity.GetUserId())
-            {
-               return NotFound();
-            }
-
             try
             {
                 if (ModelState.IsValid)
                 {
                     topic.IsOpened = false;
                     topic.User = await _context.Users.FirstOrDefaultAsync(u => u.Id == User.Identity.GetUserId());
-                    topic.Course = course;
-                    _context.Add(topic);
+
+                    _context.Topics.Add(topic);
                     await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("TopicsForCreator", new { id = topic.CourseId });
                 }
             }
             catch
@@ -123,7 +131,7 @@ namespace ProgrammingCoursesApp.Controllers
 
         // GET: Topics/Edit/5
         [Authorize]
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> EditTopic(int? id)
         {
             if (id == null)
             {
@@ -138,10 +146,10 @@ namespace ProgrammingCoursesApp.Controllers
             return View(topic);
         }
 
-        // POST: Topics/Edit/5
+        // POST: Topics/EditTopic/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,IsOpened")] Topic topic)
+        public async Task<IActionResult> EditTopic(int id, [Bind("Id,CourseId,Name,Description,IsOpened")] Topic topic)
         {
             if (id != topic.Id)
             {
@@ -152,6 +160,7 @@ namespace ProgrammingCoursesApp.Controllers
             {
                 try
                 {
+                     
                     _context.Update(topic);
                     await _context.SaveChangesAsync();
                 }
@@ -166,13 +175,14 @@ namespace ProgrammingCoursesApp.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+
+                return RedirectToAction("TopicsForCreator", new { id = topic.CourseId });
             }
             return View(topic);
         }
 
         // GET: Topics/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> DeleteTopic(int? id)
         {
             if (id == null)
             {

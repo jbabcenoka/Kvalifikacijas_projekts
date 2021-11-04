@@ -4,30 +4,32 @@
     ViewData["Title"] = "Topics";
 }
 
-<h2>Course "@Model.Name"</h2>
+<h2>Course "@Model.Name" topics</h2>
 <hr />
 
-<div class="li-content">
-    <ol class="topiclist">
-        @foreach (var item in Model.Topics)
-        {
-            <li>
-                <a class="topic" asp-controller="TopicBlocks" asp-action="Index" asp-route-id="@item.Id">
-                    <h5>@Html.DisplayFor(modelItem => item.Name)</h5>
-                    <span>@Html.DisplayFor(modelItem => item.Description)</span>
-                </a>
-                <div class="edit-buttons">
-                    <a class="btn btn-primary edit-delete-button" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
-                    <a class="btn btn-danger topic-delete-button" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-                </div>
-            </li>
-        }
-    </ol>
-</div>
-
-<p class="create-topic">
-    <a class="btn btn-info" asp-action="Create" asp-route-id="@Model.Id">Create new topic</a>
-</p>
+@if (Model.Topics == null || Model.Topics.Count == 0)
+{
+    <div class="info">This course doesn`t contain any topic.</div>
+}
+else
+{ 
+    <div class="li-content">
+        <ol class="topiclist">
+            @foreach (var item in Model.Topics)
+            {
+                if (item.IsOpened)
+                {
+                    <li>
+                        <a class="topic" asp-controller="TopicBlocks" asp-action="Index" asp-route-id="@item.Id">
+                            <h5>@Html.DisplayFor(modelItem => item.Name)</h5>
+                            <span>@Html.DisplayFor(modelItem => item.Description)</span>
+                        </a>
+                    </li>
+                }
+            }
+        </ol>
+    </div>
+}
 
 <style>
     h2 {
@@ -37,77 +39,64 @@
         margin-bottom: 30px;
     }
 
-    .create-topic {
-        text-align: end;
-        margin-right: 9%;
-    }
-
-    .li-content {
-        display: flex;
-        justify-content: center;
-    }
-
-    .edit-buttons {
-        text-align: center;
-    }
-
-    .topic-delete-button {
-        margin-top: 5px;
-    }
-
-    .edit-delete-button, .topic-delete-button {
-        width: 100px;
+    .info {
+        padding-left: 10%;
     }
 
     .topiclist {
         padding: 0;
         list-style: none;
         counter-reset: li;
-        width: 90%;
+        width: 100%;
+    }
+
+    .li-content {
+        margin-left: 10%;
+        margin-right: 10%;
     }
 
 
-        .topiclist li {
-            margin-bottom: 25px;
-            display: flex;
-            justify-content: start;
+    .topiclist li {
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: start;
+    }
+
+    .topiclist h5 {
+        font-size: 1.35em;
+    }
+
+    .topiclist .topic {
+        position: relative;
+        width: 100%;
+        display: block;
+        padding: .8em .4em 0.7em 3em;
+        background: #eef3f2;
+        color: #444;
+        border-radius: .3em;
+        margin-bottom: 1em;
+        text-decoration: none;
+    }
+
+        .topiclist .topic:hover {
+            background: #cbe7f8;
         }
 
-        .topiclist h5 {
-            font-size: 1.35em;
+        .topiclist .topic:before {
+            content: counter(li);
+            counter-increment: li;
+            position: absolute;
+            top: 0px;
+            left: -1.5em;
+            padding-top: 0.32em;
+            vertical-align: middle;
+            height: 3em;
+            width: 3em;
+            border: .3em solid #fff;
+            background: #87ceeb;
+            text-align: center;
+            font-size: 25px;
+            border-radius: 2em;
+            color: #fff;
         }
-
-        .topiclist .topic {
-            position: relative;
-            width: 90%;
-            display: block;
-            padding: .8em .4em 0.7em 3em;
-            background: #eef3f2;
-            color: #444;
-            border-radius: .3em;
-            margin-bottom: 1em;
-            text-decoration: none;
-        }
-
-            .topiclist .topic:hover {
-                background: #cbe7f8;
-            }
-
-            .topiclist .topic:before {
-                content: counter(li);
-                counter-increment: li;
-                position: absolute;
-                top: 0px;
-                left: -1.5em;
-                padding-top: 0.32em;
-                vertical-align: middle;
-                height: 3em;
-                width: 3em;
-                border: .3em solid #fff;
-                background: #87ceeb;
-                text-align: center;
-                font-size: 25px;
-                border-radius: 2em;
-                color: #fff;
-            }
 </style>

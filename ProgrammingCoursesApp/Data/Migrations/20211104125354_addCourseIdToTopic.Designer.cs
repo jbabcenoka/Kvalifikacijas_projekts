@@ -10,8 +10,8 @@ using ProgrammingCoursesApp.Data;
 namespace ProgrammingCoursesApp.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20211101202032_courseIdForTopic")]
-    partial class courseIdForTopic
+    [Migration("20211104125354_addCourseIdToTopic")]
+    partial class addCourseIdToTopic
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

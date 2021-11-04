@@ -2,7 +2,7 @@
 
 namespace ProgrammingCoursesApp.Data.Migrations
 {
-    public partial class courseIdForTopic : Migration
+    public partial class addCourseIdToTopic : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

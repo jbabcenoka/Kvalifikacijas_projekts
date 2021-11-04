@@ -1,43 +1,43 @@
 ﻿@model ProgrammingCoursesApp.Models.Topic
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Topic creation";
 }
 
-<h1>Edit</h1>
-
-<h4>Topic</h4>
+<h2>Topic creation for course "@Model.Course.Name"</h2>
 <hr />
+
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
+    <div class="col-md-6">
+        <form asp-action="CreateTopic">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
+            <input asp-for="CourseId" hidden/>
             <div class="form-group">
                 <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
+                <input asp-for="Name" class="form-control" autocomplete="off" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
+                <textarea asp-for="Description" class="form-control" rows="4" autocomplete="off"></textarea>
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="IsOpened" /> @Html.DisplayNameFor(model => model.IsOpened)
-                </label>
-            </div>
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                <a class="btn btn-info" asp-action="TopicsForCreator" asp-route-id="@Model.CourseId">Back to topics</a>
+                <input type="submit" value="Create" class="btn btn-primary" />
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+<style>
+    h2 {
+        display: flex;
+        justify-content: center;
+        margin-top: 50px;
+        margin-bottom: 30px;
+    }
+</style>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
