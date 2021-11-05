@@ -20,7 +20,7 @@ else
                 if (item.IsOpened)
                 {
                     <li>
-                        <a class="topic" asp-controller="TopicBlocks" asp-action="Index" asp-route-id="@item.Id">
+                        <a class="topic" asp-controller="Tasks" asp-action="Index" asp-route-id="@item.Id">
                             <h5>@Html.DisplayFor(modelItem => item.Name)</h5>
                             <span>@Html.DisplayFor(modelItem => item.Description)</span>
                         </a>

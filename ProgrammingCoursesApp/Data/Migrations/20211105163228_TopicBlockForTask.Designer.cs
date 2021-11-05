@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProgrammingCoursesApp.Data;
 
 namespace ProgrammingCoursesApp.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20211105163228_TopicBlockForTask")]
+    partial class TopicBlockForTask
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -302,13 +304,7 @@ namespace ProgrammingCoursesApp.Data.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("TopicBlockId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("TopicBlockId")
-                        .IsUnique();
 
                     b.ToTable("Tasks");
 
@@ -359,10 +355,15 @@ namespace ProgrammingCoursesApp.Data.Migrations
                     b.Property<int>("Points")
                         .HasColumnType("int");
 
+                    b.Property<int?>("TaskId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("TopicId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TaskId");
 
                     b.HasIndex("TopicId");
 
@@ -475,17 +476,6 @@ namespace ProgrammingCoursesApp.Data.Migrations
                     b.Navigation("Task");
                 });
 
-            modelBuilder.Entity("ProgrammingCoursesApp.Models.Task", b =>
-                {
-                    b.HasOne("ProgrammingCoursesApp.Models.TopicBlock", "TopicBlock")
-                        .WithOne("Task")
-                        .HasForeignKey("ProgrammingCoursesApp.Models.Task", "TopicBlockId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("TopicBlock");
-                });
-
             modelBuilder.Entity("ProgrammingCoursesApp.Models.Topic", b =>
                 {
                     b.HasOne("ProgrammingCoursesApp.Models.Course", "Course")
@@ -503,9 +493,15 @@ namespace ProgrammingCoursesApp.Data.Migrations
 
             modelBuilder.Entity("ProgrammingCoursesApp.Models.TopicBlock", b =>
                 {
+                    b.HasOne("ProgrammingCoursesApp.Models.Task", "Task")
+                        .WithMany()
+                        .HasForeignKey("TaskId");
+
                     b.HasOne("ProgrammingCoursesApp.Models.Topic", "Topic")
                         .WithMany("TopicBlocks")
                         .HasForeignKey("TopicId");
+
+                    b.Navigation("Task");
 
                     b.Navigation("Topic");
                 });
@@ -518,11 +514,6 @@ namespace ProgrammingCoursesApp.Data.Migrations
             modelBuilder.Entity("ProgrammingCoursesApp.Models.Topic", b =>
                 {
                     b.Navigation("TopicBlocks");
-                });
-
-            modelBuilder.Entity("ProgrammingCoursesApp.Models.TopicBlock", b =>
-                {
-                    b.Navigation("Task");
                 });
 
             modelBuilder.Entity("ProgrammingCoursesApp.Models.Exercise", b =>

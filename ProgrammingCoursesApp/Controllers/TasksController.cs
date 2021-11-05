@@ -10,23 +10,27 @@ using ProgrammingCoursesApp.Models;
 
 namespace ProgrammingCoursesApp
 {
-    public class TopicBlocksController : Controller
+    public class TasksController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        public TopicBlocksController(ApplicationDbContext context)
+        public TasksController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        // GET: TopicBlocks
+        // GET: Tasks
         public async Task<IActionResult> Index(int? id)
         {
-            var topicBlocks = await _context.TopicBlocks.Where(t => t.TopicId == id).ToListAsync();
+            //iegūt sarakstu ar tēmas blokiem 
+            var topicBlocks = await _context.TopicBlocks.Include(t => t.Topic)
+                        .Where(t => t.Topic.Id == id).OrderByDescending(t => t.DisplayOrder)
+                        .Include(t => t.Task).ToListAsync();
+
             return View(topicBlocks);
         }
 
-        // GET: TopicBlocks/Details/5
+        // GET: Tasks/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -44,15 +48,13 @@ namespace ProgrammingCoursesApp
             return View(topicBlock);
         }
 
-        // GET: TopicBlocks/Create
+        // GET: Tasks/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: TopicBlocks/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: Tasks/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,DisplayOrder,Points")] TopicBlock topicBlock)
@@ -66,7 +68,7 @@ namespace ProgrammingCoursesApp
             return View(topicBlock);
         }
 
-        // GET: TopicBlocks/Edit/5
+        // GET: Tasks/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -82,9 +84,7 @@ namespace ProgrammingCoursesApp
             return View(topicBlock);
         }
 
-        // POST: TopicBlocks/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: Tasks/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,DisplayOrder,Points")] TopicBlock topicBlock)
@@ -117,7 +117,7 @@ namespace ProgrammingCoursesApp
             return View(topicBlock);
         }
 
-        // GET: TopicBlocks/Delete/5
+        // GET: Tasks/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -135,7 +135,7 @@ namespace ProgrammingCoursesApp
             return View(topicBlock);
         }
 
-        // POST: TopicBlocks/Delete/5
+        // POST: Tasks/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

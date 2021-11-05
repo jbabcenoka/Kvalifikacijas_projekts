@@ -1,153 +1,153 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using ProgrammingCoursesApp.Data;
-using ProgrammingCoursesApp.Models;
+﻿//using system;
+//using system.collections.generic;
+//using system.linq;
+//using system.threading.tasks;
+//using microsoft.aspnetcore.mvc;
+//using microsoft.aspnetcore.mvc.rendering;
+//using microsoft.entityframeworkcore;
+//using programmingcoursesapp.data;
+//using programmingcoursesapp.models;
 
-namespace ProgrammingCoursesApp
-{
-    public class ExercisesController : Controller
-    {
-        private readonly ApplicationDbContext _context;
+//namespace programmingcoursesapp
+//{
+//    public class exercisescontroller : controller
+//    {
+//        private readonly applicationdbcontext _context;
 
-        public ExercisesController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+//        public exercisescontroller(applicationdbcontext context)
+//        {
+//            _context = context;
+//        }
 
-        // GET: Exercises
-        public async Task<IActionResult> Index()
-        {
-            return View(await _context.Exercises.ToListAsync());
-        }
+//        // get: exercises
+//        public async task<iactionresult> index()
+//        {
+//            return view(await _context.exercises.tolistasync());
+//        }
 
-        // GET: Exercises/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+//        // get: exercises/details/5
+//        public async task<iactionresult> details(int? id)
+//        {
+//            if (id == null)
+//            {
+//                return notfound();
+//            }
 
-            var exercise = await _context.Exercises
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (exercise == null)
-            {
-                return NotFound();
-            }
+//            var exercise = await _context.exercises
+//                .firstordefaultasync(m => m.id == id);
+//            if (exercise == null)
+//            {
+//                return notfound();
+//            }
 
-            return View(exercise);
-        }
+//            return view(exercise);
+//        }
 
-        // GET: Exercises/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
+//        // get: exercises/create
+//        public iactionresult create()
+//        {
+//            return view();
+//        }
 
-        // POST: Exercises/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("QuestionText,Id,Name")] Exercise exercise)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(exercise);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(exercise);
-        }
+//        // post: exercises/create
+//        // to protect from overposting attacks, enable the specific properties you want to bind to.
+//        // for more details, see http://go.microsoft.com/fwlink/?linkid=317598.
+//        [httppost]
+//        [validateantiforgerytoken]
+//        public async task<iactionresult> create([bind("questiontext,id,name")] exercise exercise)
+//        {
+//            if (modelstate.isvalid)
+//            {
+//                _context.add(exercise);
+//                await _context.savechangesasync();
+//                return redirecttoaction(nameof(index));
+//            }
+//            return view(exercise);
+//        }
 
-        // GET: Exercises/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+//        // get: exercises/edit/5
+//        public async task<iactionresult> edit(int? id)
+//        {
+//            if (id == null)
+//            {
+//                return notfound();
+//            }
 
-            var exercise = await _context.Exercises.FindAsync(id);
-            if (exercise == null)
-            {
-                return NotFound();
-            }
-            return View(exercise);
-        }
+//            var exercise = await _context.exercises.findasync(id);
+//            if (exercise == null)
+//            {
+//                return notfound();
+//            }
+//            return view(exercise);
+//        }
 
-        // POST: Exercises/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("QuestionText,Id,Name")] Exercise exercise)
-        {
-            if (id != exercise.Id)
-            {
-                return NotFound();
-            }
+//        // post: exercises/edit/5
+//        // to protect from overposting attacks, enable the specific properties you want to bind to.
+//        // for more details, see http://go.microsoft.com/fwlink/?linkid=317598.
+//        [httppost]
+//        [validateantiforgerytoken]
+//        public async task<iactionresult> edit(int id, [bind("questiontext,id,name")] exercise exercise)
+//        {
+//            if (id != exercise.id)
+//            {
+//                return notfound();
+//            }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(exercise);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ExerciseExists(exercise.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(exercise);
-        }
+//            if (modelstate.isvalid)
+//            {
+//                try
+//                {
+//                    _context.update(exercise);
+//                    await _context.savechangesasync();
+//                }
+//                catch (dbupdateconcurrencyexception)
+//                {
+//                    if (!exerciseexists(exercise.id))
+//                    {
+//                        return notfound();
+//                    }
+//                    else
+//                    {
+//                        throw;
+//                    }
+//                }
+//                return redirecttoaction(nameof(index));
+//            }
+//            return view(exercise);
+//        }
 
-        // GET: Exercises/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+//        // get: exercises/delete/5
+//        public async task<iactionresult> delete(int? id)
+//        {
+//            if (id == null)
+//            {
+//                return notfound();
+//            }
 
-            var exercise = await _context.Exercises
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (exercise == null)
-            {
-                return NotFound();
-            }
+//            var exercise = await _context.exercises
+//                .firstordefaultasync(m => m.id == id);
+//            if (exercise == null)
+//            {
+//                return notfound();
+//            }
 
-            return View(exercise);
-        }
+//            return view(exercise);
+//        }
 
-        // POST: Exercises/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var exercise = await _context.Exercises.FindAsync(id);
-            _context.Exercises.Remove(exercise);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
+//        // post: exercises/delete/5
+//        [httppost, actionname("delete")]
+//        [validateantiforgerytoken]
+//        public async task<iactionresult> deleteconfirmed(int id)
+//        {
+//            var exercise = await _context.exercises.findasync(id);
+//            _context.exercises.remove(exercise);
+//            await _context.savechangesasync();
+//            return redirecttoaction(nameof(index));
+//        }
 
-        private bool ExerciseExists(int id)
-        {
-            return _context.Exercises.Any(e => e.Id == id);
-        }
-    }
-}
+//        private bool exerciseexists(int id)
+//        {
+//            return _context.exercises.any(e => e.id == id);
+//        }
+//    }
+//}
