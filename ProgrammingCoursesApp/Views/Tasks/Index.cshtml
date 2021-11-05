@@ -53,7 +53,16 @@
         {
             <button class="nav-link @(firstTabHeader ? "active" : null)" data-bs-toggle="tab" type="button" role="tab" 
                     data-bs-target="#topic@(topicBlock.Id)">
-                temp
+                @if (topicBlock.Task.GetType() == typeof(VideoTask)) {
+                    <span>Video</span>
+                }
+                else if (topicBlock.Task.GetType() == typeof(ReadTask)) { 
+                    <span>Reading</span>
+                }
+                else
+                {
+                    <span>Exercise</span>
+                }
             </button>
             firstTabHeader = false;
         }
@@ -64,17 +73,49 @@
 <div class="tab-content">
     @foreach (var topicBlock in Model)
     {
-        <div id="topic@(topicBlock.Id)" class="tab-pane @(firstTabBody ? "active" : null)" role="tabpanel">
-            <h3>@topicBlock.Points</h3>
-            <p>Points: @topicBlock.Points</p>
+    <div id="topic@(topicBlock.Id)" class="tab-pane @(firstTabBody ? "active" : null)" role="tabpanel">
+        <box>Points: @topicBlock.Points</box>
+        @if (topicBlock.Task.GetType() == typeof(ReadTask))
+        {
+            var task = (ReadTask)topicBlock.Task;
+            <div>@task.Text</div>
+        }
+        else if (topicBlock.Task.GetType() == typeof(VideoTask))
+        {
+            var task = (VideoTask)topicBlock.Task;
+            <div class="video-content">
+                <iframe src="@task.Link"
+                        title="YouTube video player" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+            </div>
             
-            Content: <br />
-            @if (topicBlock.Task.GetType() == typeof(ReadTask))
-            {
-                var task = (ReadTask)topicBlock.Task;
-                <p>@task.Text</p> 
-            }
-        </div>
+        }
+    </div>
         firstTabBody = false;
     }
 </div>
+
+<style>
+    box {
+        border: 1px solid black;
+        box-shadow: 12px 12px 2px 1px rgba(0, 0, 255, .2);
+        padding: 10px;
+        position: relative;
+        top: 25px;
+        left: 25px;
+        font-size: 20px;
+    }
+
+    .video-content {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 200px;
+    }
+
+    iframe {
+        width: 55%;
+        height: 410px;
+    }
+
+</style>
