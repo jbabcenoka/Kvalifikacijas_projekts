@@ -27,7 +27,19 @@ namespace ProgrammingCoursesApp
                         .Where(t => t.Topic.Id == id).OrderByDescending(t => t.DisplayOrder)
                         .Include(t => t.Task).ToListAsync();
 
+            var topic = await _context.Topics.FirstOrDefaultAsync(t => t.Id == id);
+            ViewBag.TopicName = topic != null ? topic.Name : null;
+
             return View(topicBlocks);
+        }
+
+        //GET: 
+        [HttpGet]
+        public async Task<JsonResult> GetPossibleAnswers(int? id)
+        {
+            var answers = await _context.PossibleAnswers.Where(t => t.ExerciseId == id).ToListAsync();
+            
+            return Json(answers);
         }
 
         // GET: Tasks/Details/5
