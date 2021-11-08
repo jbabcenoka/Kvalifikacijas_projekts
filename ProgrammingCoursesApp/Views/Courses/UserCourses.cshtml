@@ -18,12 +18,12 @@
                 <div class="card-header" style="background-color:#eaf2ff">
                     <h5 class="card-title text-center text-dark" style="padding-top:5px; padding-bottom:5px; margin-bottom:0px;">@Html.DisplayFor(modelItem => item.Name)</h5>
                     <i class="material-icons">@(item.IsOpened ? "visibility" : "visibility_off")</i>
+                    <a asp-controller="Topics" asp-action="Index" asp-route-id="@item.Id" class="btn btn-outline-primary preview-button" width="150px">Preview</a>
                 </div>
                 <div class="card-body bg-light">
                     <p class="card-text text-justify">@Html.DisplayFor(modelItem => item.Description)</p>
                 </div>
                 <div class="card-footer text-center">
-                    <a asp-controller="Topics" asp-action="Index" asp-route-id="@item.Id" class="btn btn-primary" width="150px">Preview</a>
                     <a asp-controller="Topics" asp-action="TopicsForCreator" asp-route-id="@item.Id" class="btn btn-primary" width="150px">Topics</a>
                     <a asp-action="EditCourse" asp-route-id="@item.Id" class="btn btn-info" width="150px">Edit</a>
                     <a asp-action="DeleteCourse" asp-route-id="@item.Id" class="btn btn-danger" width="150px">Delete</a>
@@ -34,7 +34,7 @@
 </div>
 
 <p class="create-course">
-    <a class="btn btn-info" asp-action="CreateCourse">Create new course</a>
+    <a class="btn btn-primary" asp-action="CreateCourse">Create new course</a>
 </p>
 
 <style>
@@ -52,6 +52,12 @@
         color: #000000;
     }
 
+    .preview-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+
     .card-header {
         color: #d4e9eb;
         cursor: default;
@@ -60,6 +66,6 @@
     .create-course {
         text-align: end;
         margin-top: 70px;
-        margin-bottom: 50px;
+        margin-bottom: 100px;
     }
 </style>

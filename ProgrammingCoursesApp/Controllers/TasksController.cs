@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using ProgrammingCoursesApp.Controllers;
 using ProgrammingCoursesApp.Data;
 using ProgrammingCoursesApp.Models;
 
@@ -22,15 +23,55 @@ namespace ProgrammingCoursesApp
         // GET: Tasks
         public async Task<IActionResult> Index(int? id)
         {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            
+            var topic = await _context.Topics.FirstOrDefaultAsync(t => t.Id == id);
+
+            if (topic == null)
+            {
+                return NotFound();
+            }
+
             //iegūt sarakstu ar tēmas blokiem 
             var topicBlocks = await _context.TopicBlocks.Include(t => t.Topic)
                         .Where(t => t.Topic.Id == id).OrderByDescending(t => t.DisplayOrder)
                         .Include(t => t.Task).ToListAsync();
 
-            var topic = await _context.Topics.FirstOrDefaultAsync(t => t.Id == id);
-            ViewBag.TopicName = topic != null ? topic.Name : null;
+            ViewBag.TopicName = topic.Name;
+            ViewBag.TopicId = topic.Id;
+            ViewBag.CourseId = topic.CourseId;
 
             return View(topicBlocks);
+        }
+
+        //GET: TasksForCoursesCreator
+        public async Task<IActionResult> TasksForCoursesCreator(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var topic = await _context.Topics.FirstOrDefaultAsync(t => t.Id == id);
+
+            if (topic == null)
+            {
+                return NotFound();
+            }
+
+            //iegūt sarakstu ar tēmas blokiem 
+            var topicBlocks = await _context.TopicBlocks.Include(t => t.Topic)
+                        .Where(t => t.Topic.Id == id).OrderByDescending(t => t.DisplayOrder)
+                        .Include(t => t.Task).ToListAsync();
+
+            ViewBag.TopicName = topic.Name;
+            ViewBag.TopicId = topic.Id;
+            ViewBag.CourseId = topic.CourseId;
+
+            return View("TasksForCoursesCreator", topicBlocks);
         }
 
         //GET: 
@@ -40,24 +81,6 @@ namespace ProgrammingCoursesApp
             var answers = await _context.PossibleAnswers.Where(t => t.ExerciseId == id).ToListAsync();
             
             return Json(answers);
-        }
-
-        // GET: Tasks/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var topicBlock = await _context.TopicBlocks
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (topicBlock == null)
-            {
-                return NotFound();
-            }
-
-            return View(topicBlock);
         }
 
         // GET: Tasks/Create
@@ -88,45 +111,50 @@ namespace ProgrammingCoursesApp
                 return NotFound();
             }
 
-            var topicBlock = await _context.TopicBlocks.FindAsync(id);
-            if (topicBlock == null)
+            var task = await _context.Tasks.Include(t => t.TopicBlock).Include(x => x.TopicBlock.Topic).FirstOrDefaultAsync(t => t.Id == id);
+            if (task == null)
             {
                 return NotFound();
             }
-            return View(topicBlock);
+
+            if (task.GetType() == typeof(ReadTask))
+            {
+                var readTask = (ReadTask)task;
+                return View("ReadTaskEdit", readTask);
+            }
+
+            return View(task);
         }
 
+        
         // POST: Tasks/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,DisplayOrder,Points")] TopicBlock topicBlock)
+        public async Task<IActionResult> EditReadTask(int id, [Bind("Id,TopicBlockId,Name,Text")] ReadTask readTask)
         {
-            if (id != topicBlock.Id)
+            if (id != readTask.Id)
             {
                 return NotFound();
             }
+
+            var topicBlock = await _context.TopicBlocks.Include(t => t.Topic).FirstOrDefaultAsync(t => t.Id == readTask.TopicBlockId);
+
+            var topicId = topicBlock.Topic.Id;
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(topicBlock);
+                    _context.Tasks.Update(readTask);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!TopicBlockExists(topicBlock.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    throw;
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(TasksForCoursesCreator), new { id = topicId });
             }
-            return View(topicBlock);
+            return View(readTask);
         }
 
         // GET: Tasks/Delete/5

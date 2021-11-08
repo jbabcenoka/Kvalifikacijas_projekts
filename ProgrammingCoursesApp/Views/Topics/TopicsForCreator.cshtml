@@ -9,21 +9,14 @@
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet" />
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-<div class="header-section"> 
-    <a class="btn btn-primary" asp-controller="Courses" asp-action="UserCourses">Back</a>
-    <h2>Course "@Model.Name" topics</h2>
-</div>
+<h2>Course "@Model.Name" topics</h2>
 
 <hr />
-
-<p class="create-topic">
-    <a class="btn btn-info" asp-action="CreateTopic" asp-route-id="@Model.Id">Create new</a>
-</p>
 
 <h2>Published topics</h2>
 @if (publishedCount == 0)
 {
-    <p class="info">This course doesn`t have any published topics.</p>
+    <p class="empty-info">This course doesn`t have any published topics.</p>
 }
 else
 {
@@ -34,7 +27,7 @@ else
                 if (item.IsOpened)
                 {
                     <li>
-                        <a class="topic" asp-controller="Tasks" asp-action="Index" asp-route-id="@item.Id">
+                        <a class="topic" asp-controller="Tasks" asp-action="TasksForCoursesCreator" asp-route-id="@item.Id">
                             <h5>@Html.DisplayFor(modelItem => item.Name)</h5>
                             <span>@Html.DisplayFor(modelItem => item.Description)</span>
                             <i class="material-icons">@(item.IsOpened ? "visibility" : "visibility_off")</i>
@@ -54,7 +47,7 @@ else
 
 @if (unpublishedCount == 0)
 {
-    <p class="info">This course doesn`t have any unpublished topics.</p>
+    <p class="empty-info">This course doesn`t have any unpublished topics.</p>
 }
 else
 {
@@ -65,7 +58,7 @@ else
                 if (!item.IsOpened)
                 {
                     <li>
-                        <a class="topic" asp-controller="Tasks" asp-action="Index" asp-route-id="@item.Id">
+                        <a class="topic" asp-controller="Tasks" asp-action="TasksForCoursesCreator" asp-route-id="@item.Id">
                             <h5>@Html.DisplayFor(modelItem => item.Name)</h5>
                             <span>@Html.DisplayFor(modelItem => item.Description)</span>
                             <i class="material-icons">@(item.IsOpened ? "visibility" : "visibility_off")</i>
@@ -81,6 +74,12 @@ else
     </div>
 }
 
+<div class="navigation-buttons">
+    <a class="btn btn-info back-button" asp-controller="Courses" asp-action="UserCourses">Back to my courses</a>
+    <a class="btn btn-primary create-topic" asp-action="CreateTopic" asp-route-id="@Model.Id">Create new topic</a>
+</div>
+
+
 <style>
     h2 {
         display: flex;
@@ -95,17 +94,10 @@ else
         right: 10px;
     }
 
-    .info {
-       font-size: 20px;
-       width: 30%;
-       padding-bottom: 15px;
-       padding-left: 5%;
-    }
-
-    .create-topic {
-        text-align: end;
-        margin-right: 9%;
-        margin-bottom: 15px;
+    .empty-info {
+        width: 40%;
+        margin-bottom: 50px;
+        margin-left: 10%;
     }
 
     .li-content {
@@ -115,6 +107,18 @@ else
 
     .edit-buttons {
         text-align: center;
+    }
+
+    .navigation-buttons {
+        margin-bottom: 100px;
+    }
+
+    .back-button {
+        margin-left: 5%;
+    }
+
+    .create-topic {
+        margin-left: 45%;
     }
 
     .topic-delete-button {

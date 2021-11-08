@@ -1,0 +1,41 @@
+﻿@model ProgrammingCoursesApp.Models.ReadTask
+
+@{
+    ViewData["Title"] = "Edit reading task";
+}
+
+<h1>Edit reading task</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="EditReadTask">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="TopicBlockId" />
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" autocomplete="off" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Text" class="control-label"></label>
+                <textarea asp-for="Text" class="form-control" rows="5" autocomplete="off"></textarea>
+                <span asp-validation-for="Text" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="@Model.TopicBlock.Points" class="control-label"></label>
+                <input asp-for="@Model.TopicBlock.Points" class="form-control" />
+                <span asp-validation-for="@Model.TopicBlock.Points" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <a class="btn btn-info" asp-action="TasksForCoursesCreator" asp-route-id="@Model.TopicBlock.Topic.Id">Back to topics</a>
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

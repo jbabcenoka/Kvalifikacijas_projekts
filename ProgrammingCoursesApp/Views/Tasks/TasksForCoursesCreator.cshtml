@@ -1,9 +1,7 @@
 ﻿@model IEnumerable<ProgrammingCoursesApp.Models.TopicBlock>
 
 @{
-    ViewData["Title"] = "Topic";
-    bool firstTabHeader = true;
-    bool firstTabBody = true;
+    ViewData["Title"] = "Topic tasks creation";
 
     var topicName = ViewBag.TopicName;
     var topicId = ViewBag.TopicId;
@@ -37,46 +35,36 @@
 <h2>@topicName</h2>
 
 @if (Model.Count() == 0)
-{ 
-    <div class="tab-content">
+{
+    <div class="tab-content empty-content">
         This topic doesn`t contain any task.
     </div>
 }
-else 
-{ 
-    <nav>
-        <div class="nav nav-tabs" id="nav-tab" role="tablist">
-            @foreach (var topicBlock in Model)
-            {
-                <button class="nav-link nav-tab-link @(firstTabHeader ? "active" : null)" data-bs-toggle="tab" type="button" role="tab"
-                        data-bs-target="#topic@(topicBlock.Id)">
-                    @if (topicBlock.Task.GetType() == typeof(VideoTask)) { <span>Video</span> }
-                    else if (topicBlock.Task.GetType() == typeof(ReadTask)) { <span>Reading</span> }
-                    else { <span>Exercise</span> }
-                </button>
-                firstTabHeader = false;
-            }
-        </div>
-    </nav>
-
+else
+{
     <div class="tab-content">
         @foreach (var topicBlock in Model)
         {
-            <div id="topic@(topicBlock.Id)" class="tab-pane @(firstTabBody ? "active" : null)" role="tabpanel">
+            <hr />
+            <div id="topic@(topicBlock.Id)" class="task-view">
                 <box class="points-box">Points: @topicBlock.Points</box>
                 @if (topicBlock.Task.GetType() == typeof(ReadTask))
                 {
                     var task = (ReadTask)topicBlock.Task;
                     <div class="read-content task-content">
-                        <h4>@task.Name</h4>
+                        <h4>@task.Name (Reading)</h4>
                         @task.Text
+                    </div>
+                    <div class="task-buttons">
+                        <a class="btn btn-outline-primary" asp-controller="Tasks" asp-action="Edit" asp-route-id="@task.Id">Edit</a>
+                        <a class="btn btn-outline-danger">Delete</a>
                     </div>
                 }
                 else if (topicBlock.Task.GetType() == typeof(VideoTask))
                 {
                     var task = (VideoTask)topicBlock.Task;
                     <div class="task-content">
-                        <h4>@task.Name</h4>
+                        <h4>@task.Name (Video)</h4>
                     </div>
                     <div class="video-content task-content">
                         <iframe src="@task.Link"
@@ -84,13 +72,17 @@ else
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                 allowfullscreen></iframe>
                     </div>
+                    <div class="task-buttons">
+                        <a class="btn btn-outline-primary" asp-controller="Tasks" asp-action="Edit" asp-route-id="@task.Id">Edit</a>
+                        <a class="btn btn-outline-danger">Delete</a>
+                    </div>
                 }
                 else   //uzdevums
                 {
                     var task = (Exercise)topicBlock.Task;
 
                     <div class="exercise-content task-content">
-                        <h4>@task.Name</h4>
+                        <h4>@task.Name (Exercise)</h4>
 
                         <h4>@task.QuestionText</h4>
 
@@ -102,15 +94,19 @@ else
                         </script>
 
                     </div>
+                    <div class="task-buttons">
+                        <a class="btn btn-outline-primary" asp-controller="Tasks" asp-action="Edit" asp-route-id="@task.Id">Edit</a>
+                        <a class="btn btn-outline-danger">Delete</a>
+                    </div>
                 }
-            
+                    
             </div>
-            firstTabBody = false;
         }
     </div>
 }
 
-<a class="btn btn-info back-button" asp-controller="Topics" asp-action="Index" asp-route-id="@courseId">Back to topics</a>
+<a class="btn btn-info back-button" asp-controller="Topics" asp-action="TopicsForCreator" asp-route-id="@courseId">Back to topics</a>
+<a class="btn btn-primary create-button" asp-controller="Topics" asp-action="TopicsForCreator" asp-route-id="@courseId">Create new task</a>
 
 <style>
     h2 {
@@ -120,19 +116,23 @@ else
         margin-bottom: 30px;
     }
 
+    .empty-content {
+        margin-bottom: 40px;
+    }
+
     .points-box {
         border: 2px solid rebeccapurple;
         box-shadow: 12px 12px 2px 1px rgba(0, 0, 255, .2);
-        padding: 10px;
+        padding: 5px;
         position: relative;
         top: 25px;
-        font-size: 1.1em;
-        font-weight: 700;
+        font-size: 1em;
+        font-weight: 600;
         left: 80%;
     }
 
-    .empty-tab {
-        margin-bottom: 40px;
+    .task-view {
+        margin-bottom: 50px;
     }
 
     .nav-tab-link {
@@ -150,6 +150,10 @@ else
         margin-bottom: 20px;
     }
 
+    .task-buttons {
+        margin-top: 20px;
+    }
+
     .task-content {
         clear: both;
         font-size: 18px;
@@ -163,6 +167,10 @@ else
         padding-top: 33.76%;
     }
 
+    .create-button {
+        margin-left: 65%;
+    }
+
     iframe {
         width: 100%;
         height: 100%;
@@ -171,11 +179,5 @@ else
         bottom: 0;
         right: 0;
     }
-
-    .back-button {
-       margin-top: 50px;
-       margin-bottom: 100px;
-    }
-
 </style>
 

@@ -12,7 +12,7 @@
     <div class="info">This course doesn`t contain any topic.</div>
 }
 else
-{ 
+{
     <div class="li-content">
         <ol class="topiclist">
             @foreach (var item in Model.Topics)
@@ -30,6 +30,8 @@ else
         </ol>
     </div>
 }
+
+<a class="btn btn-info back-button" asp-controller="Courses" asp-action="Index">Back to courses</a>
 
 <style>
     h2 {
@@ -55,6 +57,11 @@ else
         margin-right: 10%;
     }
 
+    .back-button {
+        margin-top: 10px;
+        margin-left: 10%;
+        margin-bottom: 100px;
+    }
 
     .topiclist li {
         margin-bottom: 25px;
