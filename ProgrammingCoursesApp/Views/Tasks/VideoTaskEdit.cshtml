@@ -1,15 +1,16 @@
-﻿@model ProgrammingCoursesApp.Models.ReadTask
+﻿@model ProgrammingCoursesApp.Models.VideoTask
+
 
 @{
-    ViewData["Title"] = "Edit reading task";
+    ViewData["Title"] = "Edit video task";
 }
 
-<h1>Edit reading task</h1>
+<h1>Edit video task</h1>
 
 <hr />
 <div class="row">
     <div class="col-md-6">
-        <form asp-action="EditReadTask">
+        <form asp-action="EditVideoTask">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="TopicBlockId" />
@@ -19,9 +20,9 @@
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Text" class="control-label"></label>
-                <textarea asp-for="Text" class="form-control" rows="5" autocomplete="off"></textarea>
-                <span asp-validation-for="Text" class="text-danger"></span>
+                <label asp-for="Link" class="control-label"></label>
+                <textarea asp-for="Link" class="form-control" rows="5" autocomplete="off"></textarea>
+                <span asp-validation-for="Link" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="@Model.TopicBlock.DisplayOrder" class="control-label"></label>

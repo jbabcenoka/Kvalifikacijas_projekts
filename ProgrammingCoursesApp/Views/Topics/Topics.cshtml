@@ -1,13 +1,12 @@
-﻿@model ProgrammingCoursesApp.Models.Course
-
+﻿@model ProgrammingCoursesApp.ViewModels.TopicsVM
 @{
     ViewData["Title"] = "Topics";
 }
 
-<h2>Course "@Model.Name" topics</h2>
+<h2>Course "@Model.CourseName" topics</h2>
 <hr />
 
-@if (Model.Topics == null || Model.Topics.Count == 0)
+@if (Model.OpenedTopics == null || Model.OpenedTopics.Count == 0)
 {
     <div class="info">This course doesn`t contain any topic.</div>
 }
@@ -15,17 +14,14 @@ else
 {
     <div class="li-content">
         <ol class="topiclist">
-            @foreach (var item in Model.Topics)
+            @foreach (var item in Model.OpenedTopics)
             {
-                if (item.IsOpened)
-                {
-                    <li>
-                        <a class="topic" asp-controller="Tasks" asp-action="Index" asp-route-id="@item.Id">
-                            <h5>@Html.DisplayFor(modelItem => item.Name)</h5>
-                            <span>@Html.DisplayFor(modelItem => item.Description)</span>
-                        </a>
-                    </li>
-                }
+                <li>
+                    <a class="topic" asp-controller="Tasks" asp-action="Index" asp-route-id="@item.Id">
+                        <h5>@Html.DisplayFor(modelItem => item.Name)</h5>
+                        <span>@Html.DisplayFor(modelItem => item.Description)</span>
+                    </a>
+                </li>
             }
         </ol>
     </div>

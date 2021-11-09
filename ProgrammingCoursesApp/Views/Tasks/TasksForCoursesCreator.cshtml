@@ -1,4 +1,4 @@
-﻿@model IEnumerable<ProgrammingCoursesApp.Models.TopicBlock>
+﻿@model ProgrammingCoursesApp.ViewModels.TasksVM
 
 @{
     ViewData["Title"] = "Topic tasks creation";
@@ -34,7 +34,7 @@
 
 <h2>@topicName</h2>
 
-@if (Model.Count() == 0)
+@if (Model.TopicBlocks.Count() == 0)
 {
     <div class="tab-content empty-content">
         This topic doesn`t contain any task.
@@ -43,7 +43,7 @@
 else
 {
     <div class="tab-content">
-        @foreach (var topicBlock in Model)
+        @foreach (var topicBlock in Model.TopicBlocks)
         {
             <hr />
             <div id="topic@(topicBlock.Id)" class="task-view">
@@ -99,14 +99,14 @@ else
                         <a class="btn btn-outline-danger">Delete</a>
                     </div>
                 }
-                    
+
             </div>
         }
     </div>
 }
 
-<a class="btn btn-info back-button" asp-controller="Topics" asp-action="TopicsForCreator" asp-route-id="@courseId">Back to topics</a>
-<a class="btn btn-primary create-button" asp-controller="Topics" asp-action="TopicsForCreator" asp-route-id="@courseId">Create new task</a>
+<a class="btn btn-info back-button" asp-controller="Topics" asp-action="TopicsForCreator" asp-route-id="@Model.CourseId">Back to topics</a>
+<a class="btn btn-primary create-button" asp-controller="Topics" asp-action="TopicsForCreator" asp-route-id="@Model.CourseId">Create new task</a>
 
 <style>
     h2 {

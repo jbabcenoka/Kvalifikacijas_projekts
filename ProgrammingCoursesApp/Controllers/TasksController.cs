@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ProgrammingCoursesApp.Controllers;
 using ProgrammingCoursesApp.Data;
 using ProgrammingCoursesApp.Models;
+using ProgrammingCoursesApp.ViewModels;
 
 namespace ProgrammingCoursesApp
 {
@@ -21,6 +23,7 @@ namespace ProgrammingCoursesApp
         }
 
         // GET: Tasks
+        [Authorize]
         public async Task<IActionResult> Index(int? id)
         {
             if (id == null)
@@ -40,11 +43,15 @@ namespace ProgrammingCoursesApp
                         .Where(t => t.Topic.Id == id).OrderByDescending(t => t.DisplayOrder)
                         .Include(t => t.Task).ToListAsync();
 
-            ViewBag.TopicName = topic.Name;
-            ViewBag.TopicId = topic.Id;
-            ViewBag.CourseId = topic.CourseId;
+            var vm = new TasksVM
+            {
+                TopicName = topic.Name,
+                TopicId = topic.Id,
+                CourseId = topic.CourseId,
+                TopicBlocks = topicBlocks
+            };
 
-            return View(topicBlocks);
+            return View(vm);
         }
 
         //GET: TasksForCoursesCreator
@@ -66,12 +73,17 @@ namespace ProgrammingCoursesApp
             var topicBlocks = await _context.TopicBlocks.Include(t => t.Topic)
                         .Where(t => t.Topic.Id == id).OrderByDescending(t => t.DisplayOrder)
                         .Include(t => t.Task).ToListAsync();
+            
 
-            ViewBag.TopicName = topic.Name;
-            ViewBag.TopicId = topic.Id;
-            ViewBag.CourseId = topic.CourseId;
+            var vm = new TasksVM
+            {
+                TopicName = topic.Name,
+                TopicId = topic.Id,
+                CourseId = topic.CourseId,
+                TopicBlocks = topicBlocks
+            };
 
-            return View("TasksForCoursesCreator", topicBlocks);
+            return View("TasksForCoursesCreator", vm);
         }
 
         //GET: 
@@ -117,17 +129,24 @@ namespace ProgrammingCoursesApp
                 return NotFound();
             }
 
+            var taskType = task.GetType();
+            
             if (task.GetType() == typeof(ReadTask))
             {
                 var readTask = (ReadTask)task;
                 return View("ReadTaskEdit", readTask);
+            }
+            else if (task.GetType() == typeof(VideoTask))
+            {
+                var videoTask = (VideoTask)task;
+                return View("VideoTaskEdit", videoTask);
             }
 
             return View(task);
         }
 
         
-        // POST: Tasks/Edit/5
+        // POST: Tasks/EditReadTask/1
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditReadTask(int id, [Bind("Id,TopicBlockId,Name,Text")] ReadTask readTask)
@@ -137,9 +156,13 @@ namespace ProgrammingCoursesApp
                 return NotFound();
             }
 
-            var topicBlock = await _context.TopicBlocks.Include(t => t.Topic).FirstOrDefaultAsync(t => t.Id == readTask.TopicBlockId);
+            //atrast tēmas bloku, kuram pieder uzdevums
+            var topicBlock = await _context.TopicBlocks.Where(t => t.Id == readTask.TopicBlockId).FirstOrDefaultAsync();
 
-            var topicId = topicBlock.Topic.Id;
+            if (topicBlock == null)
+            {
+                return NotFound();
+            }
 
             if (ModelState.IsValid)
             {
@@ -152,9 +175,43 @@ namespace ProgrammingCoursesApp
                 {
                     throw;
                 }
-                return RedirectToAction(nameof(TasksForCoursesCreator), new { id = topicId });
+                return RedirectToAction(nameof(TasksForCoursesCreator), new { id = topicBlock.TopicId });
             }
             return View(readTask);
+        }
+
+        // POST: Tasks/EditReadTask/1
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditVideoTask(int id, [Bind("Id,TopicBlockId,Name,Link")] VideoTask videoTask)
+        {
+            if (id != videoTask.Id)
+            {
+                return NotFound();
+            }
+
+            //atrast tēmas bloku, kuram pieder uzdevums
+            var topicBlock = await _context.TopicBlocks.Where(t => t.Id == videoTask.TopicBlockId).FirstOrDefaultAsync();
+
+            if (topicBlock == null)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Tasks.Update(videoTask);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    throw;
+                }
+                return RedirectToAction(nameof(TasksForCoursesCreator), new { id = topicBlock.TopicId });
+            }
+            return View(videoTask);
         }
 
         // GET: Tasks/Delete/5

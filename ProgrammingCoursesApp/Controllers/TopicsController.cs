@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ProgrammingCoursesApp.Data;
 using ProgrammingCoursesApp.Models;
+using ProgrammingCoursesApp.ViewModels;
 
 namespace ProgrammingCoursesApp.Controllers
 {
@@ -29,11 +30,27 @@ namespace ProgrammingCoursesApp.Controllers
                 return NotFound();
             }
 
-            var course = await _context.Courses.Where(c => c.Id == id).Include(t => t.Topics).FirstOrDefaultAsync();
+            var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == id);
 
-            return View("Topics", course);
+            if (course == null)
+            {
+                return NotFound();
+            }
+
+            var openedTopics = await _context.Topics.Where(t => t.CourseId == id && t.IsOpened)
+                                        .OrderByDescending(t => t.DisplayOrder).ToListAsync();
+
+            var vm = new TopicsVM
+            {
+                CourseName = course.Name,
+                CourseId = course.Id,
+                OpenedTopics = openedTopics
+            };
+
+            return View("Topics", vm);
         }
 
+        [Authorize]
         public async Task<IActionResult> TopicsForCreator(int? id)
         {
             if (id == null)
@@ -42,15 +59,23 @@ namespace ProgrammingCoursesApp.Controllers
             }
 
             //iegūt kursu ar tēmām
-            var course = await _context.Courses.Where(c => c.Id == id).Include(t => t.Topics).Include(u => u.User).FirstOrDefaultAsync();
+            var course = await _context.Courses.FirstOrDefaultAsync();
 
-            //ja tas nav kursa veidotāja kurss
-            if (course.User.Id != User.Identity.GetUserId())
+            if (course == null)
             {
                 return NotFound();
             }
 
-            return View("TopicsForCreator", course);
+            var topics = await _context.Topics.Where(c => c.CourseId == id).ToListAsync();
+
+            var vm = new TopicsVM
+            {
+                CourseName = course.Name,
+                CourseId = course.Id,
+                Topics = topics
+            };
+
+            return View("TopicsForCreator", vm);
         }
 
         // GET: Topics/CreateTopic/1

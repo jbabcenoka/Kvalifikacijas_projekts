@@ -13,8 +13,9 @@ namespace ProgrammingCoursesApp.Models
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
+        public int DisplayOrder { get; set; }
         public bool IsOpened { get; set; }
-        public int? CourseId { get; set; }
+        public int CourseId { get; set; }
         public Course Course { get; set; }
         public IdentityUser User { get; set; }
         public ICollection<TopicBlock> TopicBlocks { get; set; }
