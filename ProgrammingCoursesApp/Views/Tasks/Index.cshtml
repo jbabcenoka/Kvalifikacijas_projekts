@@ -65,7 +65,7 @@ else
                     var task = (ReadTask)topicBlock.Task;
                     <div class="read-content task-content">
                         <h4>@task.Name</h4>
-                        @task.Text
+                        <div>@Html.Raw(task.Text)</div>
                     </div>
                 }
                 else if (topicBlock.Task.GetType() == typeof(VideoTask))

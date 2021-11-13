@@ -4,11 +4,15 @@
     ViewData["Title"] = "Edit reading task";
 }
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/4.5.6/tinymce.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/tinymce/4.5.6/jquery.tinymce.min.js"></script>
+
 <h1>Edit reading task</h1>
 
 <hr />
 <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-8">
         <form asp-action="EditReadTask">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
@@ -20,18 +24,13 @@
             </div>
             <div class="form-group">
                 <label asp-for="Text" class="control-label"></label>
-                <textarea asp-for="Text" class="form-control" rows="5" autocomplete="off"></textarea>
+                <textarea asp-for="Text" class="form-control editorHtml" rows="10" autocomplete="off"></textarea>
                 <span asp-validation-for="Text" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="@Model.TopicBlock.DisplayOrder" class="control-label"></label>
-                <input asp-for="@Model.TopicBlock.DisplayOrder" class="form-control" />
-                <span asp-validation-for="@Model.TopicBlock.DisplayOrder" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="@Model.TopicBlock.Points" class="control-label"></label>
-                <input asp-for="@Model.TopicBlock.Points" class="form-control" />
-                <span asp-validation-for="@Model.TopicBlock.Points" class="text-danger"></span>
+                <label asp-for="Points" class="control-label"></label>
+                <input asp-for="Points" class="form-control" />
+                <span asp-validation-for="Points" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <a class="btn btn-info" asp-action="TasksForCoursesCreator" asp-route-id="@Model.TopicBlock.Topic.Id">Back to topics</a>
@@ -44,3 +43,20 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
+
+<script>
+
+    tinyMCE.init({
+        selector: '.editorHtml',
+        mode: "textareas",
+        theme: "modern",
+        menubar: false,
+        plugins: [
+            'advlist autolink lists link image charmap print preview anchor',
+            'searchreplace visualblocks code fullscreen',
+            'insertdatetime media table contextmenu paste code'
+        ],
+        toolbar: 'undo redo | insert | styleselect | bold italic | alignleft aligncenter alignright alignjustify |  bullist numlist outdent indent'
+    });
+
+</script>

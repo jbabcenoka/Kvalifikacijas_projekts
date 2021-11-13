@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using ProgrammingCoursesApp.Controllers;
 using ProgrammingCoursesApp.Data;
 using ProgrammingCoursesApp.Models;
@@ -39,9 +40,12 @@ namespace ProgrammingCoursesApp
             }
 
             //iegūt sarakstu ar tēmas blokiem 
-            var topicBlocks = await _context.TopicBlocks.Include(t => t.Topic)
-                        .Where(t => t.Topic.Id == id).OrderByDescending(t => t.DisplayOrder)
-                        .Include(t => t.Task).ToListAsync();
+            var topicBlocks = await _context.TopicBlocks
+                                .Include(t => t.Topic)
+                                .Where(t => t.Topic.Id == id)
+                                .OrderBy(t => t.DisplayOrder)
+                                .Include(t => t.Task)
+                                .ToListAsync();
 
             var vm = new TasksVM
             {
@@ -70,11 +74,13 @@ namespace ProgrammingCoursesApp
             }
 
             //iegūt sarakstu ar tēmas blokiem 
-            var topicBlocks = await _context.TopicBlocks.Include(t => t.Topic)
-                        .Where(t => t.Topic.Id == id).OrderByDescending(t => t.DisplayOrder)
-                        .Include(t => t.Task).ToListAsync();
+            var topicBlocks = await _context.TopicBlocks
+                                .Include(t => t.Topic)
+                                .Where(t => t.Topic.Id == id)
+                                .OrderBy(t => t.DisplayOrder)
+                                .Include(t => t.Task)
+                                .ToListAsync();
             
-
             var vm = new TasksVM
             {
                 TopicName = topic.Name,
@@ -90,7 +96,9 @@ namespace ProgrammingCoursesApp
         [HttpGet]
         public async Task<JsonResult> GetPossibleAnswers(int? id)
         {
-            var answers = await _context.PossibleAnswers.Where(t => t.ExerciseId == id).ToListAsync();
+            var answers = await _context.PossibleAnswers
+                            .Where(t => t.ExerciseId == id)
+                            .ToListAsync();
             
             return Json(answers);
         }
@@ -123,11 +131,16 @@ namespace ProgrammingCoursesApp
                 return NotFound();
             }
 
-            var task = await _context.Tasks.Include(t => t.TopicBlock).Include(x => x.TopicBlock.Topic).FirstOrDefaultAsync(t => t.Id == id);
+            var task = await _context.Tasks
+                        .Include(t => t.TopicBlock)
+                        .Include(x => x.TopicBlock.Topic)
+                        .FirstOrDefaultAsync(t => t.Id == id);
             if (task == null)
             {
                 return NotFound();
             }
+
+            task.Points = task.TopicBlock.Points;
 
             var taskType = task.GetType();
             
@@ -141,6 +154,17 @@ namespace ProgrammingCoursesApp
                 var videoTask = (VideoTask)task;
                 return View("VideoTaskEdit", videoTask);
             }
+            else if (task.GetType() == typeof(Exercise))
+            {
+                var exerciseTask = (Exercise)task;
+
+                var possibleAnswers = await _context.PossibleAnswers
+                                        .Where(t => t.ExerciseId == task.Id)
+                                        .ToListAsync();
+
+                exerciseTask.PossibleAnswers = possibleAnswers;
+                return View("ExerciseTaskEdit", exerciseTask);
+            }
 
             return View(task);
         }
@@ -149,7 +173,7 @@ namespace ProgrammingCoursesApp
         // POST: Tasks/EditReadTask/1
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditReadTask(int id, [Bind("Id,TopicBlockId,Name,Text")] ReadTask readTask)
+        public async Task<IActionResult> EditReadTask(int id, [Bind("Id,TopicBlockId,Name,Text,Points")] ReadTask readTask)
         {
             if (id != readTask.Id)
             {
@@ -157,7 +181,9 @@ namespace ProgrammingCoursesApp
             }
 
             //atrast tēmas bloku, kuram pieder uzdevums
-            var topicBlock = await _context.TopicBlocks.Where(t => t.Id == readTask.TopicBlockId).FirstOrDefaultAsync();
+            var topicBlock = await _context.TopicBlocks
+                                .Where(t => t.Id == readTask.TopicBlockId)
+                                .FirstOrDefaultAsync();
 
             if (topicBlock == null)
             {
@@ -168,6 +194,8 @@ namespace ProgrammingCoursesApp
             {
                 try
                 {
+                    topicBlock.Points = readTask.Points;
+                    _context.TopicBlocks.Update(topicBlock);
                     _context.Tasks.Update(readTask);
                     await _context.SaveChangesAsync();
                 }
@@ -180,10 +208,10 @@ namespace ProgrammingCoursesApp
             return View(readTask);
         }
 
-        // POST: Tasks/EditReadTask/1
+        // POST: Tasks/EditVideoTask/1
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditVideoTask(int id, [Bind("Id,TopicBlockId,Name,Link")] VideoTask videoTask)
+        public async Task<IActionResult> EditVideoTask(int id, [Bind("Id,TopicBlockId,Name,Link,Points")] VideoTask videoTask)
         {
             if (id != videoTask.Id)
             {
@@ -191,7 +219,9 @@ namespace ProgrammingCoursesApp
             }
 
             //atrast tēmas bloku, kuram pieder uzdevums
-            var topicBlock = await _context.TopicBlocks.Where(t => t.Id == videoTask.TopicBlockId).FirstOrDefaultAsync();
+            var topicBlock = await _context.TopicBlocks
+                                .Where(t => t.Id == videoTask.TopicBlockId)
+                                .FirstOrDefaultAsync();
 
             if (topicBlock == null)
             {
@@ -202,6 +232,8 @@ namespace ProgrammingCoursesApp
             {
                 try
                 {
+                    topicBlock.Points = videoTask.Points;
+                    _context.TopicBlocks.Update(topicBlock);
                     _context.Tasks.Update(videoTask);
                     await _context.SaveChangesAsync();
                 }
@@ -214,6 +246,44 @@ namespace ProgrammingCoursesApp
             return View(videoTask);
         }
 
+        // POST: Tasks/EditReadTask/1
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditExerciseTask(int id, [Bind("Id,TopicBlockId,Name,Text,Points")] ReadTask readTask)
+        {
+            if (id != readTask.Id)
+            {
+                return NotFound();
+            }
+
+            //atrast tēmas bloku, kuram pieder uzdevums
+            var topicBlock = await _context.TopicBlocks
+                                .Where(t => t.Id == readTask.TopicBlockId)
+                                .FirstOrDefaultAsync();
+
+            if (topicBlock == null)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    topicBlock.Points = readTask.Points;
+                    _context.TopicBlocks.Update(topicBlock);
+                    _context.Tasks.Update(readTask);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    throw;
+                }
+                return RedirectToAction(nameof(TasksForCoursesCreator), new { id = topicBlock.TopicId });
+            }
+            return View(readTask);
+        }
+
         // GET: Tasks/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -222,8 +292,7 @@ namespace ProgrammingCoursesApp
                 return NotFound();
             }
 
-            var topicBlock = await _context.TopicBlocks
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var topicBlock = await _context.TopicBlocks.FirstOrDefaultAsync(m => m.Id == id);
             if (topicBlock == null)
             {
                 return NotFound();

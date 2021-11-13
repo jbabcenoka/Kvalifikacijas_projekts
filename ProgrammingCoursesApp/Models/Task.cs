@@ -12,5 +12,8 @@ namespace ProgrammingCoursesApp.Models
         public string Name { get; set; }
         public int TopicBlockId { get; set; }
         public TopicBlock TopicBlock { get; set; }
+
+        [NotMapped]
+        public int Points { get; set; }
     }
 }

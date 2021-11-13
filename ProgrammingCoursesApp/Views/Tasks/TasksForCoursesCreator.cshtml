@@ -53,7 +53,7 @@ else
                     var task = (ReadTask)topicBlock.Task;
                     <div class="read-content task-content">
                         <h4>@task.Name (Reading)</h4>
-                        @task.Text
+                        <div>@Html.Raw(task.Text)</div>
                     </div>
                     <div class="task-buttons">
                         <a class="btn btn-outline-primary" asp-controller="Tasks" asp-action="Edit" asp-route-id="@task.Id">Edit</a>
@@ -86,8 +86,7 @@ else
 
                         <h4>@task.QuestionText</h4>
 
-                        <form id="possible-answers-@task.Id">
-                        </form>
+                        <form id="possible-answers-@task.Id"></form>
 
                         <script type="text/javascript">
                             getPossibleAnswers(@task.Id);

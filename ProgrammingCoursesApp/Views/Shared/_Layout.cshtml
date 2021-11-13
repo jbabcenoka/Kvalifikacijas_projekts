@@ -9,6 +9,7 @@
 </head>
 <body>
     <header>
+        <img src="~/learning4.png" alt="Sample Photo" />
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Courses</a>
@@ -28,7 +29,7 @@
         </nav>
     </header>
     <div class="container">
-        <main role="main" class="pb-3">
+        <main role="main" class="main-div">
             @RenderBody()
         </main>
     </div>
@@ -46,7 +47,22 @@
 </html>
 
 <style>
-    .pb-3 {
+    .main-div {
         font-size: 1.1em;
+        margin-top: 2em;
+        padding-bottom: 3em;
+    }
+
+    img {
+        width: 100%;
+        height: auto;
+    }
+
+    .navbar {
+        position: absolute;
+        width: 100%;
+        top: 0px;
+        left: 0px;
+        opacity: 0.8;
     }
 </style>

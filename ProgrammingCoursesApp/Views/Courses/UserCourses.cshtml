@@ -23,10 +23,11 @@
                 <div class="card-body bg-light">
                     <p class="card-text text-justify">@Html.DisplayFor(modelItem => item.Description)</p>
                 </div>
+
                 <div class="card-footer text-center">
-                    <a asp-controller="Topics" asp-action="TopicsForCreator" asp-route-id="@item.Id" class="btn btn-primary" width="150px">Moderate</a>
-                    <a asp-action="EditCourse" asp-route-id="@item.Id" class="btn btn-info" width="150px">Edit</a>
-                    <a asp-action="DeleteCourse" asp-route-id="@item.Id" class="btn btn-danger" width="150px">Delete</a>
+                    <a asp-controller="Topics" asp-action="TopicsForCreator" asp-route-id="@item.Id" class="btn btn-outline-primary" width="150px">Content</a>
+                    <a asp-action="EditCourse" asp-route-id="@item.Id" class="btn btn-outline-info" width="150px">Edit description</a>
+                    <a asp-action="DeleteCourse" asp-route-id="@item.Id" class="btn btn-outline-danger" width="150px">Delete</a>
                 </div>
             </div>
         </div>

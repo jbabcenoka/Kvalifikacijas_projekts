@@ -1,6 +1,5 @@
 ﻿@model ProgrammingCoursesApp.Models.VideoTask
 
-
 @{
     ViewData["Title"] = "Edit video task";
 }
@@ -25,14 +24,9 @@
                 <span asp-validation-for="Link" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="@Model.TopicBlock.DisplayOrder" class="control-label"></label>
-                <input asp-for="@Model.TopicBlock.DisplayOrder" class="form-control" />
-                <span asp-validation-for="@Model.TopicBlock.DisplayOrder" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="@Model.TopicBlock.Points" class="control-label"></label>
-                <input asp-for="@Model.TopicBlock.Points" class="form-control" />
-                <span asp-validation-for="@Model.TopicBlock.Points" class="text-danger"></span>
+                <label asp-for="Points" class="control-label"></label>
+                <input asp-for="Points" class="form-control" />
+                <span asp-validation-for="Points" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <a class="btn btn-info" asp-action="TasksForCoursesCreator" asp-route-id="@Model.TopicBlock.Topic.Id">Back to topics</a>

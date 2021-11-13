@@ -37,8 +37,10 @@ namespace ProgrammingCoursesApp.Controllers
                 return NotFound();
             }
 
-            var openedTopics = await _context.Topics.Where(t => t.CourseId == id && t.IsOpened)
-                                        .OrderByDescending(t => t.DisplayOrder).ToListAsync();
+            var openedTopics = await _context.Topics
+                                .Where(t => t.CourseId == id && t.IsOpened)
+                                .OrderBy(t => t.DisplayOrder)
+                                .ToListAsync();
 
             var vm = new TopicsVM
             {
@@ -66,7 +68,10 @@ namespace ProgrammingCoursesApp.Controllers
                 return NotFound();
             }
 
-            var topics = await _context.Topics.Where(c => c.CourseId == id).ToListAsync();
+            var topics = await _context.Topics
+                            .Where(c => c.CourseId == id)
+                            .OrderBy(t => t.DisplayOrder)
+                            .ToListAsync();
 
             var vm = new TopicsVM
             {
@@ -76,6 +81,27 @@ namespace ProgrammingCoursesApp.Controllers
             };
 
             return View("TopicsForCreator", vm);
+        }
+
+        [HttpGet, Authorize]
+        public async Task<IActionResult> ChangeTopicsOrder(int? id, string[] topicsInOrder)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            foreach (var topicName in topicsInOrder)
+            {
+                var topic = await _context.Topics.FirstOrDefaultAsync(t => t.Name == topicName);
+
+                topic.DisplayOrder = Array.IndexOf(topicsInOrder, topicName);
+
+                _context.Topics.Update(topic);
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok();
         }
 
         // GET: Topics/CreateTopic/1

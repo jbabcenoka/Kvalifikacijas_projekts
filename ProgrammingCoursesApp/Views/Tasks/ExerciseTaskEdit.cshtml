@@ -1,0 +1,78 @@
+﻿@model ProgrammingCoursesApp.Models.Exercise
+
+@{
+    ViewData["Title"] = "Exercise task edit";
+}
+
+<h1>Exercise task edit</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-8">
+        <form asp-action="EditExerciseTask">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="TopicBlockId" />
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" autocomplete="off" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="QuestionText" class="control-label"></label>
+                <input asp-for="QuestionText" class="form-control" autocomplete="off" />
+                <span asp-validation-for="QuestionText" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                @for (int itemIndex = 0; itemIndex < Model.PossibleAnswers.Count; itemIndex++)
+                {
+                    <div class="form-group answersInfo">
+                        <div class="form-group questionBox">
+                            <label asp-for="PossibleAnswers.ElementAt(itemIndex).Text" class="control-label">Question answer #@(itemIndex+1)</label>
+                            <textarea asp-for="PossibleAnswers.ElementAt(itemIndex).Text" class="form-control" rows="2" autocomplete="off"></textarea>
+                            <span asp-validation-for="PossibleAnswers.ElementAt(itemIndex).Text" class="text-danger"></span>
+                        </div>
+                        <div class="form-group answerBox">
+                            <label asp-for="PossibleAnswers.ElementAt(itemIndex).IsCorrect" class="control-label">Correctness</label>
+                            <input type="checkbox" asp-for="PossibleAnswers.ElementAt(itemIndex).IsCorrect" class="form-control isCorrectBox" />
+                            <span asp-validation-for="PossibleAnswers.ElementAt(itemIndex).IsCorrect" class="text-danger"></span>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="form-group">
+                <label asp-for="Points" class="control-label"></label>
+                <input asp-for="Points" class="form-control" />
+                <span asp-validation-for="Points" class="text-danger"></span>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<style>
+    .answersInfo {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+    }
+
+    .answerBox {
+        padding-left:  5%;
+    }
+
+    .isCorrectBox {
+        width: 20px;
+        height: 20px;
+        margin-left: 35%;
+        margin-top: 20%;
+    }
+
+    .questionBox {
+        width: 80%;
+    }
+
+</style>
