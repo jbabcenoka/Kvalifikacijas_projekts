@@ -2,32 +2,31 @@
 
 @{
     ViewData["Title"] = "Topic";
-    bool firstTabHeader = true;
-    bool firstTabBody = true;
 }
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 
 <script type="text/javascript">
-        function getPossibleAnswers(taskId) {
-            $.ajax({
-                type: "GET",
-                url: "@Url.Action(nameof(TasksController.GetPossibleAnswers), "Tasks")",
-                contentType: "application/json; charset=utf-8",
-                data: { "id": taskId },
-                dataType: "json",
-                success: function (response) {
-                    $.each(response, function (index, item) {
-                        $('#possible-answers-' + taskId)
-                            .append('<input id=answer-' + item.id + ' type="radio" name = "possibleAnswer" value=' + item.id + '/><label for=answer-' + item.id + ' class="answer-label"> ' + item.text + '</label > <br />')
-                    });
-                },
-                failure: function (jqXHR) {
-                    alert("HTTP Status: " + jqXHR.status + "; Error Text: " + jqXHR.responseText);
-                }
-            })
-        }
+    function getPossibleAnswers(taskId)
+    {
+        $.ajax({
+            type: "GET",
+            url: "@Url.Action(nameof(TasksController.GetPossibleAnswers), "Tasks")",
+            contentType: "application/json; charset=utf-8",
+            data: { "id": taskId },
+            dataType: "json",
+            success: function (response) {
+                $.each(response, function (index, item) {
+                    $('#possible-answers-' + taskId)
+                        .prepend('<input id=answer-' + item.id + ' type="radio" name = "possibleAnswer" value=' + item.id + '/><label for=answer-' + item.id + ' class="answer-label"> ' + item.text + '</label > <br />')
+                });
+            },
+            failure: function (jqXHR) {
+                alert("HTTP Status: " + jqXHR.status + "; Error Text: " + jqXHR.responseText);
+            }
+        })
+    }
 </script>
 
 <h2>@Model.TopicName</h2>
@@ -44,13 +43,13 @@ else
         <div class="nav nav-tabs" id="nav-tab" role="tablist">
             @foreach (var topicBlock in Model.TopicBlocks)
             {
-                <button class="nav-link nav-tab-link @(firstTabHeader ? "active" : null)" data-bs-toggle="tab" type="button" role="tab"
-                        data-bs-target="#topic@(topicBlock.Id)">
+                <a class="nav-link nav-tab-link" data-bs-toggle="tab" role="tab"
+                            data-bs-target="#topic@(topicBlock.Id)" id="tab@(topicBlock.Id)">
+
                     @if (topicBlock.Task.GetType() == typeof(VideoTask)) { <span>Video</span> }
                     else if (topicBlock.Task.GetType() == typeof(ReadTask)) { <span>Reading</span> }
                     else { <span>Exercise</span> }
-                </button>
-                firstTabHeader = false;
+                </a>
             }
         </div>
     </nav>
@@ -58,7 +57,7 @@ else
     <div class="tab-content">
         @foreach (var topicBlock in Model.TopicBlocks)
         {
-            <div id="topic@(topicBlock.Id)" class="tab-pane @(firstTabBody ? "active" : null)" role="tabpanel">
+            <div id="topic@(topicBlock.Id)" class="tab-pane" role="tabpanel">
                 <box class="points-box">Points: @topicBlock.Points</box>
                 @if (topicBlock.Task.GetType() == typeof(ReadTask))
                 {
@@ -91,24 +90,50 @@ else
                         <h4>@task.QuestionText</h4>
 
                         <form id="possible-answers-@task.Id">
+                            <input type="submit" class="btn btn-success answer" onclick="setAsReaded(@topicBlock.Id)" value="Answer the question" />
                         </form>
 
                         <script type="text/javascript">
                             getPossibleAnswers(@task.Id);
                         </script>
-
                     </div>
                 }
-            
+
+                <div class="buttons-panel">
+                    <a class="btn btn-info" asp-controller="Topics" asp-action="Index" asp-route-id="@Model.CourseId">Back to topics</a>
+
+                    <input type="submit" id="submit-tasks" class="btn btn-success" value="Submit" />
+                    @if (topicBlock != Model.TopicBlocks.Last())
+                    {
+                        <a id="next-button" class="btn btn-info" onclick="showNextTab(@topicBlock.Id)">Next task</a>
+                    }
+                </div>
             </div>
-            firstTabBody = false;
         }
     </div>
 }
 
-<a class="btn btn-info back-button" asp-controller="Topics" asp-action="Index" asp-route-id="@Model.CourseId">Back to topics</a>
+
+<script>
+    $(document).ready(function () {
+        $(".nav-tabs a").on('show.bs.tab', function (e) {
+            $(this).addClass('readed');
+        });
+
+        $(".nav-tabs a:first-child").tab('show');
+    })
+
+    function setAsReaded(id) {
+        $('#tab' + id).addClass('readed');
+    }
+
+    function showNextTab(currentTabId) {
+        $("#tab" + currentTabId).next().tab('show');
+    }
+</script>
 
 <style>
+
     h2 {
         display: flex;
         justify-content: center;
@@ -135,7 +160,7 @@ else
         font-size: 18px;
         margin-right: 5px;
         color: #1234d5;
-        background-color: #ffffff;
+        cursor: default;
     }
 
     .answer-label {
@@ -147,16 +172,15 @@ else
     }
 
     .task-content {
-        clear: both;
         font-size: 18px;
-        width: 60%;
+        width: 70%;
         margin-top: 10px;
     }
 
     .video-content {
         overflow: hidden;
         position: relative;
-        padding-top: 33.76%;
+        padding-top: 38.76%;
     }
 
     iframe {
@@ -168,10 +192,30 @@ else
         right: 0;
     }
 
-    .back-button {
-       margin-top: 50px;
-       margin-bottom: 100px;
+    .buttons-panel {
+        margin-top: 70px;
+        margin-bottom: 100px;
     }
 
-</style>
+    #next-button {
+        color: white;
+        float: right;
+        margin-right: 1%;
+    }
 
+    #submit-tasks {
+        float: right;
+        margin-right: 10%;
+    }
+
+    .readed {
+        background-color: #c4ffe9;
+        color: #000;
+    }
+
+    .answer {
+        margin-top: 20px;
+        margin-bottom: 20px;
+        margin-left: 50%;
+    }
+</style>
