@@ -103,27 +103,158 @@ namespace ProgrammingCoursesApp
             return Json(answers);
         }
 
-        // GET: Tasks/Create
-        public IActionResult Create()
+        public IActionResult CreateExercise(int? id)
         {
-            return View();
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var vm = new CreateOrEditTaskVM
+            {
+                IsCreation = true,
+                TopicId = id.Value
+            };
+
+            return View("ExerciseTaskEdit", vm);
+        }
+        public IActionResult CreateVideoTask(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var vm = new CreateOrEditTaskVM
+            {
+                IsCreation = true,
+                TopicId = id.Value
+            };
+
+            return View("VideoTaskCreateOrEdit", vm);
+        }
+        public IActionResult CreateReadingTask(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var vm = new CreateOrEditTaskVM
+            {
+                IsCreation = true,
+                TopicId = id.Value
+            };
+
+            return View("ReadTaskCreateOrEdit", vm);
         }
 
-        // POST: Tasks/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,DisplayOrder,Points")] TopicBlock topicBlock)
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateReadTask(int? id, [Bind("Name,Text,Points")] ReadTask readTask)
         {
+            //ja tēma nav noradīta
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            //atrast tēmu
+            var topic = await _context.Topics
+                                .Where(t => t.Id == id)
+                                .FirstOrDefaultAsync();
+
+            if (topic == null)
+            {
+                return NotFound();
+            }
+
+            var maxDisplayOrder = await _context.TopicBlocks.Where(t => t.TopicId == id).MaxAsync(d => d.DisplayOrder);
+
+            var topicBlock = new TopicBlock();
+            topicBlock.Points = readTask.Points;
+            topicBlock.DisplayOrder = maxDisplayOrder + 1;
+            topicBlock.Topic = topic;
+            readTask.TopicBlock = topicBlock;
+
             if (ModelState.IsValid)
             {
-                _context.Add(topicBlock);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    await _context.TopicBlocks.AddAsync(topicBlock);
+                    await _context.Tasks.AddAsync(readTask);
+
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    throw;
+                }
+                return RedirectToAction(nameof(TasksForCoursesCreator), new { id = id });
             }
-            return View(topicBlock);
+
+            var vm = new CreateOrEditTaskVM
+            {
+                IsCreation = true,
+                ReadTask = readTask,
+                TopicId = id.Value
+            };
+
+            return View("ReadTaskCreateOrEdit", vm);
         }
 
-        // GET: Tasks/Edit/5
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateVideoTask(int? id, [Bind("Name,Link,Points")] VideoTask videoTask)
+        {
+            //ja tēma nav noradīta
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            //atrast tēmu
+            var topic = await _context.Topics
+                                .Where(t => t.Id == id)
+                                .FirstOrDefaultAsync();
+
+            if (topic == null)
+            {
+                return NotFound();
+            }
+
+            var maxDisplayOrder = await _context.TopicBlocks.Where(t => t.TopicId == id).MaxAsync(d => d.DisplayOrder);
+
+            var topicBlock = new TopicBlock();
+            topicBlock.Points = videoTask.Points;
+            topicBlock.DisplayOrder = maxDisplayOrder + 1;
+            topicBlock.Topic = topic;
+            videoTask.TopicBlock = topicBlock;
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    await _context.TopicBlocks.AddAsync(topicBlock);
+                    await _context.Tasks.AddAsync(videoTask);
+
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    throw;
+                }
+                return RedirectToAction(nameof(TasksForCoursesCreator), new { id = id });
+            }
+
+            var vm = new CreateOrEditTaskVM
+            {
+                IsCreation = true,
+                VideoTask = videoTask,
+                TopicId = id.Value
+            };
+
+            return View("VideoTaskCreateOrEdit", vm);
+        }
+
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -133,12 +264,16 @@ namespace ProgrammingCoursesApp
 
             var task = await _context.Tasks
                         .Include(t => t.TopicBlock)
-                        .Include(x => x.TopicBlock.Topic)
                         .FirstOrDefaultAsync(t => t.Id == id);
             if (task == null)
             {
                 return NotFound();
             }
+
+            var vm = new CreateOrEditTaskVM
+            {
+                TopicId = task.TopicBlock.TopicId.Value
+            };
 
             task.Points = task.TopicBlock.Points;
 
@@ -147,14 +282,16 @@ namespace ProgrammingCoursesApp
             if (task.GetType() == typeof(ReadTask))
             {
                 var readTask = (ReadTask)task;
-                return View("ReadTaskEdit", readTask);
+                vm.ReadTask = readTask;
+                return View("ReadTaskCreateOrEdit", vm);
             }
             else if (task.GetType() == typeof(VideoTask))
             {
                 var videoTask = (VideoTask)task;
-                return View("VideoTaskEdit", videoTask);
+                vm.VideoTask = videoTask;
+                return View("VideoTaskCreateOrEdit", vm);
             }
-            else if (task.GetType() == typeof(Exercise))
+            else //exercise
             {
                 var exerciseTask = (Exercise)task;
 
@@ -163,16 +300,12 @@ namespace ProgrammingCoursesApp
                                         .ToListAsync();
 
                 exerciseTask.PossibleAnswers = possibleAnswers;
-                return View("ExerciseTaskEdit", exerciseTask);
+                vm.Exercise = exerciseTask;
+                return View("ExerciseTaskEdit", vm);
             }
-
-            return View(task);
         }
 
-        
-        // POST: Tasks/EditReadTask/1
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> EditReadTask(int id, [Bind("Id,TopicBlockId,Name,Text,Points")] ReadTask readTask)
         {
             if (id != readTask.Id)
@@ -205,12 +338,17 @@ namespace ProgrammingCoursesApp
                 }
                 return RedirectToAction(nameof(TasksForCoursesCreator), new { id = topicBlock.TopicId });
             }
-            return View(readTask);
+
+            var vm = new CreateOrEditTaskVM
+            {
+                ReadTask = readTask,
+                TopicId = id
+            };
+
+            return View("ReadTaskCreateOrEdit", vm);
         }
 
-        // POST: Tasks/EditVideoTask/1
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> EditVideoTask(int id, [Bind("Id,TopicBlockId,Name,Link,Points")] VideoTask videoTask)
         {
             if (id != videoTask.Id)
@@ -243,48 +381,16 @@ namespace ProgrammingCoursesApp
                 }
                 return RedirectToAction(nameof(TasksForCoursesCreator), new { id = topicBlock.TopicId });
             }
-            return View(videoTask);
+
+            var vm = new CreateOrEditTaskVM
+            {
+                VideoTask = videoTask,
+                TopicId = id
+            };
+
+            return View("VideoTaskCreateOrEdit", vm);
         }
-
-        // POST: Tasks/EditReadTask/1
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditExerciseTask(int id, [Bind("Id,TopicBlockId,Name,Text,Points")] ReadTask readTask)
-        {
-            if (id != readTask.Id)
-            {
-                return NotFound();
-            }
-
-            //atrast tēmas bloku, kuram pieder uzdevums
-            var topicBlock = await _context.TopicBlocks
-                                .Where(t => t.Id == readTask.TopicBlockId)
-                                .FirstOrDefaultAsync();
-
-            if (topicBlock == null)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    topicBlock.Points = readTask.Points;
-                    _context.TopicBlocks.Update(topicBlock);
-                    _context.Tasks.Update(readTask);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    throw;
-                }
-                return RedirectToAction(nameof(TasksForCoursesCreator), new { id = topicBlock.TopicId });
-            }
-            return View(readTask);
-        }
-
-        // GET: Tasks/Delete/5
+        
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -301,7 +407,6 @@ namespace ProgrammingCoursesApp
             return View(topicBlock);
         }
 
-        // POST: Tasks/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

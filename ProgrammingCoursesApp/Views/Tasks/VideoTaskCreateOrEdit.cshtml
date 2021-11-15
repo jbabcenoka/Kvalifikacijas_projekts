@@ -1,0 +1,48 @@
+﻿@model ProgrammingCoursesApp.ViewModels.CreateOrEditTaskVM
+
+@{
+    var aspActionName = Model.IsCreation ? "CreateVideoTask" : "EditVideoTask";
+    var routeId = Model.IsCreation ? Model.TopicId : Model.VideoTask.Id;
+    var title = Model.IsCreation ? "Create video task" : "Edit video task";
+
+    ViewData["Title"] = title;
+}
+
+<h1>@title</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="@aspActionName" asp-route-id="@routeId">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            @if (!Model.IsCreation)
+            {
+                <input type="hidden" asp-for="VideoTask.Id" />
+                <input type="hidden" asp-for="VideoTask.TopicBlockId" />
+            }
+            <div class="form-group">
+                <label asp-for="VideoTask.Name" class="control-label"></label>
+                <input asp-for="VideoTask.Name" class="form-control" autocomplete="off" />
+                <span asp-validation-for="VideoTask.Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="VideoTask.Link" class="control-label"></label>
+                <textarea asp-for="VideoTask.Link" class="form-control" rows="5" autocomplete="off"></textarea>
+                <span asp-validation-for="VideoTask.Link" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="VideoTask.Points" class="control-label"></label>
+                <input asp-for="VideoTask.Points" class="form-control" />
+                <span asp-validation-for="VideoTask.Points" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <a class="btn btn-info" asp-action="TasksForCoursesCreator" asp-route-id="@Model.TopicId">Back to topics</a>
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

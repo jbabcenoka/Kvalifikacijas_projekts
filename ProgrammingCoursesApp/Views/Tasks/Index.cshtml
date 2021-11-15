@@ -43,7 +43,8 @@ else
         <div class="nav nav-tabs" id="nav-tab" role="tablist">
             @foreach (var topicBlock in Model.TopicBlocks)
             {
-                <a class="nav-link nav-tab-link" data-bs-toggle="tab" role="tab"
+                <a class="nav-link nav-tab-link @(topicBlock.Task.GetType() == typeof(Exercise) ? "exercise" : null)"
+                            data-bs-toggle="tab" role="tab"
                             data-bs-target="#topic@(topicBlock.Id)" id="tab@(topicBlock.Id)">
 
                     @if (topicBlock.Task.GetType() == typeof(VideoTask)) { <span>Video</span> }
@@ -55,61 +56,62 @@ else
     </nav>
 
     <div class="tab-content">
-        @foreach (var topicBlock in Model.TopicBlocks)
-        {
-            <div id="topic@(topicBlock.Id)" class="tab-pane" role="tabpanel">
-                <box class="points-box">Points: @topicBlock.Points</box>
-                @if (topicBlock.Task.GetType() == typeof(ReadTask))
-                {
-                    var task = (ReadTask)topicBlock.Task;
-                    <div class="read-content task-content">
-                        <h4>@task.Name</h4>
-                        <div>@Html.Raw(task.Text)</div>
-                    </div>
-                }
-                else if (topicBlock.Task.GetType() == typeof(VideoTask))
-                {
-                    var task = (VideoTask)topicBlock.Task;
-                    <div class="task-content">
-                        <h4>@task.Name</h4>
-                    </div>
-                    <div class="video-content task-content">
-                        <iframe src="@task.Link"
-                                title="YouTube video player" frameborder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowfullscreen></iframe>
-                    </div>
-                }
-                else   //uzdevums
-                {
-                    var task = (Exercise)topicBlock.Task;
-
-                    <div class="exercise-content task-content">
-                        <h4>@task.Name</h4>
-
-                        <h4>@task.QuestionText</h4>
-
-                        <form id="possible-answers-@task.Id">
-                            <input type="submit" class="btn btn-success answer" onclick="setAsReaded(@topicBlock.Id)" value="Answer the question" />
-                        </form>
-
-                        <script type="text/javascript">
-                            getPossibleAnswers(@task.Id);
-                        </script>
-                    </div>
-                }
-
-                <div class="buttons-panel">
-                    <a class="btn btn-info" asp-controller="Topics" asp-action="Index" asp-route-id="@Model.CourseId">Back to topics</a>
-
-                    <input type="submit" id="submit-tasks" class="btn btn-success" value="Submit" />
-                    @if (topicBlock != Model.TopicBlocks.Last())
+            @foreach (var topicBlock in Model.TopicBlocks)
+            {
+                <div id="topic@(topicBlock.Id)" class="tab-pane" role="tabpanel">
+                    <box class="points-box">Points: @topicBlock.Points</box>
+                    @if (topicBlock.Task.GetType() == typeof(ReadTask))
                     {
-                        <a id="next-button" class="btn btn-info" onclick="showNextTab(@topicBlock.Id)">Next task</a>
+                        var task = (ReadTask)topicBlock.Task;
+                        <div class="read-content task-content">
+                            <h4>@task.Name</h4>
+                            <div>@Html.Raw(task.Text)</div>
+                        </div>
                     }
+                    else if (topicBlock.Task.GetType() == typeof(VideoTask))
+                    {
+                        var task = (VideoTask)topicBlock.Task;
+                        <div class="task-content">
+                            <h4>@task.Name</h4>
+                        </div>
+                        <div class="video-content task-content">
+                            <iframe src="@task.Link"
+                                    title="YouTube video player" frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowfullscreen></iframe>
+                        </div>
+                    }
+                    else   //uzdevums
+                    {
+                        var task = (Exercise)topicBlock.Task;
+
+                        <div class="exercise-content task-content">
+                            <h4>@task.Name</h4>
+
+                            <h4>@task.QuestionText</h4>
+
+                            <div id="possible-answers-@task.Id">
+                                <a id="answer@(topicBlock.Id)" class="btn btn-success answer" onclick="saveAnswer('possible-answers-'+@(task.Id), @topicBlock.Id)">Answer the question</a>
+                            </div>
+
+                            <script type="text/javascript">
+                                getPossibleAnswers(@task.Id);
+                            </script>
+                        </div>
+                    }
+
+                    <div class="buttons-panel">
+                        <a class="btn btn-info" asp-controller="Topics" asp-action="Index" asp-route-id="@Model.CourseId">Back to topics</a>
+
+                        <button type="submit" id="submit-tasks" class="btn btn-success">Submit</button>
+
+                        @if (topicBlock != Model.TopicBlocks.Last())
+                        {
+                            <a id="next-button" class="btn btn-info" onclick="showNextTab(@topicBlock.Id)">Next task</a>
+                        }
+                    </div>
                 </div>
-            </div>
-        }
+            }
     </div>
 }
 
@@ -117,7 +119,9 @@ else
 <script>
     $(document).ready(function () {
         $(".nav-tabs a").on('show.bs.tab', function (e) {
-            $(this).addClass('readed');
+            if (!$(this).hasClass('exercise')) {
+                $(this).addClass('readed');
+            }
         });
 
         $(".nav-tabs a:first-child").tab('show');
@@ -129,6 +133,15 @@ else
 
     function showNextTab(currentTabId) {
         $("#tab" + currentTabId).next().tab('show');
+    }
+
+    function saveAnswer(formId, currentTabId) {
+        setAsReaded(currentTabId);
+        $("#" + formId + " :input").each(function () {
+            var input = $(this);
+            input.attr("disabled", true);
+        });
+        $("#answer" + currentTabId).addClass("disabled");
     }
 </script>
 
@@ -209,13 +222,22 @@ else
     }
 
     .readed {
-        background-color: #c4ffe9;
+        background-color: powderblue;
         color: #000;
+    }
+
+    label {
+        display: inline;
     }
 
     .answer {
         margin-top: 20px;
         margin-bottom: 20px;
         margin-left: 50%;
+        color: white !important;
+    }
+
+    .nav-tab-link.active {
+        background-color: whitesmoke !important;
     }
 </style>

@@ -104,8 +104,12 @@ else
     </div>
 }
 
-<a class="btn btn-info back-button" asp-controller="Topics" asp-action="TopicsForCreator" asp-route-id="@Model.CourseId">Back to topics</a>
-<a class="btn btn-primary create-button" asp-controller="Topics" asp-action="TopicsForCreator" asp-route-id="@Model.CourseId">Create new task</a>
+<div class="buttons-panel">
+    <a class="btn btn-info" asp-controller="Topics" asp-action="TopicsForCreator" asp-route-id="@Model.CourseId">Back to topics</a>
+    <a class="btn btn-primary create-button" asp-action="CreateExercise" asp-route-id="@Model.TopicId">Create exercise</a>
+    <a class="btn btn-primary create-button" asp-action="CreateVideoTask" asp-route-id="@Model.TopicId">Create video task</a>
+    <a class="btn btn-primary create-button" asp-action="CreateReadingTask" asp-route-id="@Model.TopicId">Create reading task</a>
+</div>
 
 <style>
     h2 {
@@ -128,6 +132,11 @@ else
         font-size: 1em;
         font-weight: 600;
         left: 80%;
+    }
+
+    .buttons-panel {
+        margin-top: 70px;
+        margin-bottom: 100px;
     }
 
     .task-view {
@@ -167,7 +176,8 @@ else
     }
 
     .create-button {
-        margin-left: 65%;
+        float: right;
+        margin-right: 5px;
     }
 
     iframe {
