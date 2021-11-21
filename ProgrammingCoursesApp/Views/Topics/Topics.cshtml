@@ -1,6 +1,6 @@
 ﻿@model ProgrammingCoursesApp.ViewModels.TopicsVM
 @{
-    ViewData["Title"] = "Topics";
+    ViewData["Title"] = "Topics for course " + Model.CourseName;
 }
 
 <h2>Course "@Model.CourseName" topics</h2>
@@ -8,7 +8,7 @@
 
 @if (Model.OpenedTopics == null || Model.OpenedTopics.Count == 0)
 {
-    <div class="info">This course doesn`t contain any topic.</div>
+    <div class="info">This course does not contain any topic.</div>
 }
 else
 {
@@ -18,6 +18,13 @@ else
             {
                 <li>
                     <a class="topic" asp-controller="Tasks" asp-action="Index" asp-route-id="@item.Id">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            string percentage = Model.UserTopicsScores[item.Id].ToString() +  "%";
+                            <div class="progress">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: @percentage" aria-valuenow="@Model.UserTopicsScores[item.Id]" aria-valuemin="0" aria-valuemax="100">@Model.UserTopicsScores[item.Id]%</div>
+                            </div>
+                        }
                         <h5>@Html.DisplayFor(modelItem => item.Name)</h5>
                         <span>@Html.DisplayFor(modelItem => item.Description)</span>
                     </a>
@@ -30,6 +37,11 @@ else
 <a class="btn btn-info back-button" asp-controller="Courses" asp-action="Index">Back to courses</a>
 
 <style>
+    .progress {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
     h2 {
         display: flex;
         justify-content: center;

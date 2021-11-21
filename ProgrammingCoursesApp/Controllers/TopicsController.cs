@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ProgrammingCoursesApp.Data;
 using ProgrammingCoursesApp.Models;
@@ -22,7 +21,6 @@ namespace ProgrammingCoursesApp.Controllers
             _context = context;
         }
 
-        // GET: Topics/1
         public async Task<IActionResult> Index(int? id)
         {
             if (id == null)
@@ -42,17 +40,44 @@ namespace ProgrammingCoursesApp.Controllers
                                 .OrderBy(t => t.DisplayOrder)
                                 .ToListAsync();
 
+            Dictionary<int, double> userTopicsScores = new Dictionary<int, double>();
+
+            if (User.Identity.IsAuthenticated)
+            {
+                foreach(var topic in openedTopics)
+                {
+                    var topicMaxPoints = (await _context.TopicBlocks.Where(t => t.TopicId == topic.Id).ToListAsync()).Sum(x => x.Points);
+                
+                    var tasksIds = await _context.TopicBlocks.Where(t => t.TopicId == topic.Id).Select(t => t.Task.Id).ToListAsync();
+
+                    int userPoints = 0;
+                    foreach(var taskId in tasksIds)
+                    {
+                        var pointsForTask = await _context.Results
+                            .Where(x => x.TaskId == taskId && x.User.Id == User.Identity.GetUserId())
+                            .Select(x => x.Points)
+                            .FirstOrDefaultAsync();
+                        userPoints = userPoints + pointsForTask;
+                    }
+
+                    double userTopicResult = userPoints == 0 ? 0 : (int)Math.Round((double)(100 * userPoints) / topicMaxPoints);
+
+                    userTopicsScores.Add(topic.Id, userTopicResult);
+                }
+            }
+
             var vm = new TopicsVM
             {
                 CourseName = course.Name,
                 CourseId = course.Id,
-                OpenedTopics = openedTopics
+                OpenedTopics = openedTopics,
+                UserTopicsScores = userTopicsScores
             };
 
             return View("Topics", vm);
         }
 
-        [Authorize]
+        [Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> TopicsForCreator(int? id)
         {
             if (id == null)
@@ -83,7 +108,7 @@ namespace ProgrammingCoursesApp.Controllers
             return View("TopicsForCreator", vm);
         }
 
-        [HttpGet, Authorize]
+        [HttpGet, Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> ChangeTopicsOrder(int? id, string[] topicsInOrder)
         {
             if (id == null)
@@ -104,8 +129,7 @@ namespace ProgrammingCoursesApp.Controllers
             return Ok();
         }
 
-        // GET: Topics/CreateTopic/1
-        [Authorize]
+        [Authorize(Roles = "Admin, CourseCreator")]
         public IActionResult CreateTopic(int? id)
         {
             if (id == null)
@@ -136,10 +160,7 @@ namespace ProgrammingCoursesApp.Controllers
             return View(topic);
         }
 
-        // POST: Topics/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize]
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> CreateTopic([Bind("CourseId,Name,Description")] Topic topic)
         {
             try
@@ -162,8 +183,7 @@ namespace ProgrammingCoursesApp.Controllers
             return View(topic);
         }
 
-        // GET: Topics/Edit/5
-        [Authorize]
+        [Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> EditTopic(int? id)
         {
             if (id == null)
@@ -179,9 +199,7 @@ namespace ProgrammingCoursesApp.Controllers
             return View(topic);
         }
 
-        // POST: Topics/EditTopic/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> EditTopic(int id, [Bind("Id,CourseId,Name,Description,IsOpened")] Topic topic)
         {
             if (id != topic.Id)
@@ -214,7 +232,7 @@ namespace ProgrammingCoursesApp.Controllers
             return View(topic);
         }
 
-        // GET: Topics/Delete/5
+        [Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> DeleteTopic(int? id)
         {
             if (id == null)
@@ -232,9 +250,7 @@ namespace ProgrammingCoursesApp.Controllers
             return View(topic);
         }
 
-        // POST: Topics/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken, Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var topic = await _context.Topics.FindAsync(id);

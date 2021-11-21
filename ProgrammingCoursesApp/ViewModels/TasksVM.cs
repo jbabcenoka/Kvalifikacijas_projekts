@@ -1,8 +1,5 @@
 ﻿using ProgrammingCoursesApp.Models;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace ProgrammingCoursesApp.ViewModels
 {
@@ -11,6 +8,14 @@ namespace ProgrammingCoursesApp.ViewModels
         public string TopicName { get; set; }
         public int TopicId { get; set; }
         public int CourseId { get; set; }
-        public List<TopicBlock> TopicBlocks { get; set; }
+        public List<Block> Blocks { get; set; }
+    }
+
+    public class Block
+    {
+        public TopicBlock TopicBlock { get; set; }
+        public bool IsViewed { get; set; }
+        public List<PossibleAnswer> PossibleAnswers { get; set; }
+        public int? SelectedAnswer { get; set; }
     }
 }

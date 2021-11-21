@@ -1,76 +1,65 @@
 ﻿@model ProgrammingCoursesApp.ViewModels.TasksVM
 
 @{
-    ViewData["Title"] = "Topic";
+    ViewData["Title"] = "Topic " + Model.TopicName;
 }
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 
-<script type="text/javascript">
-    function getPossibleAnswers(taskId)
-    {
-        $.ajax({
-            type: "GET",
-            url: "@Url.Action(nameof(TasksController.GetPossibleAnswers), "Tasks")",
-            contentType: "application/json; charset=utf-8",
-            data: { "id": taskId },
-            dataType: "json",
-            success: function (response) {
-                $.each(response, function (index, item) {
-                    $('#possible-answers-' + taskId)
-                        .prepend('<input id=answer-' + item.id + ' type="radio" name = "possibleAnswer" value=' + item.id + '/><label for=answer-' + item.id + ' class="answer-label"> ' + item.text + '</label > <br />')
-                });
-            },
-            failure: function (jqXHR) {
-                alert("HTTP Status: " + jqXHR.status + "; Error Text: " + jqXHR.responseText);
-            }
-        })
-    }
-</script>
-
 <h2>@Model.TopicName</h2>
 
-@if (Model.TopicBlocks.Count() == 0)
-{ 
+@if (Model.Blocks.Count() == 0)
+{
     <div class="tab-content">
-        This topic doesn`t contain any task.
+        This topic does not contain any task.
+    </div>
+    <div class="buttons-panel">
+        <a class="btn btn-info" asp-controller="Topics" asp-action="Index" asp-route-id="@Model.CourseId">Back to topics</a>
     </div>
 }
-else 
-{ 
-    <nav>
-        <div class="nav nav-tabs" id="nav-tab" role="tablist">
-            @foreach (var topicBlock in Model.TopicBlocks)
-            {
-                <a class="nav-link nav-tab-link @(topicBlock.Task.GetType() == typeof(Exercise) ? "exercise" : null)"
-                            data-bs-toggle="tab" role="tab"
-                            data-bs-target="#topic@(topicBlock.Id)" id="tab@(topicBlock.Id)">
+else
+{
+    <form asp-action="SubmitTopicResult" id="myform">
+        <nav>
+            <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                @foreach (var topicBlock in Model.Blocks)
+                {
+                    <a class="nav-link nav-tab-link @(topicBlock.TopicBlock.Task.GetType() == typeof(Exercise) ? "exercise" : null)"
+                       data-bs-toggle="tab" role="tab"
+                       data-bs-target="#topic@(topicBlock.TopicBlock.Id)" id="tab@(topicBlock.TopicBlock.Id)">
 
-                    @if (topicBlock.Task.GetType() == typeof(VideoTask)) { <span>Video</span> }
-                    else if (topicBlock.Task.GetType() == typeof(ReadTask)) { <span>Reading</span> }
-                    else { <span>Exercise</span> }
-                </a>
-            }
-        </div>
-    </nav>
+                        @if (topicBlock.TopicBlock.Task.GetType() == typeof(VideoTask))
+                        {<span>Video</span> }
+                        else if (topicBlock.TopicBlock.Task.GetType() == typeof(ReadTask))
+                        { <span>Reading</span> }
+                        else
+                        { <span>Exercise</span>}
+                    </a>
+                }
+            </div>
+        </nav>
 
-    <div class="tab-content">
-            @foreach (var topicBlock in Model.TopicBlocks)
+        <div class="tab-content">
+            @for(int i = 0; i < Model.Blocks.Count; i++)
             {
-                <div id="topic@(topicBlock.Id)" class="tab-pane" role="tabpanel">
-                    <box class="points-box">Points: @topicBlock.Points</box>
-                    @if (topicBlock.Task.GetType() == typeof(ReadTask))
+                var block = Model.Blocks[i];
+                <div id="topic@(block.TopicBlock.Id)" class="tab-pane" role="tabpanel">
+                    <input asp-for="Blocks[i].TopicBlock.Id" value="@Model.Blocks[i].TopicBlock.Id" type="hidden" />
+                    <input id="topic@(block.TopicBlock.Id)-input" asp-for="Blocks[i].IsViewed" value="@Model.Blocks[i].IsViewed" type="hidden" />
+                    
+                    <box class="points-box">Points: @block.TopicBlock.Points</box>
+                    @if (block.TopicBlock.Task.GetType() == typeof(ReadTask))
                     {
-                        var task = (ReadTask)topicBlock.Task;
+                        var task = (ReadTask)block.TopicBlock.Task;
                         <div class="read-content task-content">
                             <h4>@task.Name</h4>
                             <div>@Html.Raw(task.Text)</div>
                         </div>
                     }
-                    else if (topicBlock.Task.GetType() == typeof(VideoTask))
+                    else if (block.TopicBlock.Task.GetType() == typeof(VideoTask))
                     {
-                        var task = (VideoTask)topicBlock.Task;
+                        var task = (VideoTask)block.TopicBlock.Task;
                         <div class="task-content">
                             <h4>@task.Name</h4>
                         </div>
@@ -83,20 +72,21 @@ else
                     }
                     else   //uzdevums
                     {
-                        var task = (Exercise)topicBlock.Task;
+                        var task = (Exercise)block.TopicBlock.Task;
 
                         <div class="exercise-content task-content">
                             <h4>@task.Name</h4>
 
                             <h4>@task.QuestionText</h4>
 
-                            <div id="possible-answers-@task.Id">
-                                <a id="answer@(topicBlock.Id)" class="btn btn-success answer" onclick="saveAnswer('possible-answers-'+@(task.Id), @topicBlock.Id)">Answer the question</a>
+                            <div id="answers-@task.Id">
+                                @foreach (var answer in block.PossibleAnswers)
+                                {
+                                    <input type="radio" id="@answer.Id" asp-for="Blocks[i].SelectedAnswer" value="@answer.Id" />
+                                    <label for="@answer.Id" class="answer-label">@answer.Text</label><br />
+                                }
+                                <a id="answer@(block.TopicBlock.Id)" class="btn btn-success answer" onclick="saveAnswer('#answers-@(task.Id)', @block.TopicBlock.Id)">Answer the question</a>
                             </div>
-
-                            <script type="text/javascript">
-                                getPossibleAnswers(@task.Id);
-                            </script>
                         </div>
                     }
 
@@ -105,43 +95,45 @@ else
 
                         <button type="submit" id="submit-tasks" class="btn btn-success">Submit</button>
 
-                        @if (topicBlock != Model.TopicBlocks.Last())
+                        @if (i < Model.Blocks.Count - 1)
                         {
-                            <a id="next-button" class="btn btn-info" onclick="showNextTab(@topicBlock.Id)">Next task</a>
+                            <a id="next-button" class="btn btn-info" onclick="showNextTab(@block.TopicBlock.Id)">Next task</a>
                         }
                     </div>
                 </div>
             }
-    </div>
+        </div>
+    </form>
 }
 
-
-<script>
+<script type="text/javascript">
     $(document).ready(function () {
         $(".nav-tabs a").on('show.bs.tab', function (e) {
             if (!$(this).hasClass('exercise')) {
-                $(this).addClass('readed');
+                var tabId = $(this).attr("id");
+                var targetId = $(this).attr("data-bs-target");
+                setAsReaded(tabId, targetId);
             }
         });
 
         $(".nav-tabs a:first-child").tab('show');
     })
 
-    function setAsReaded(id) {
-        $('#tab' + id).addClass('readed');
+    function setAsReaded(id, targetId) {
+        $('#' + id).addClass('readed');
+        $(targetId +"-input").val(true);
     }
 
     function showNextTab(currentTabId) {
         $("#tab" + currentTabId).next().tab('show');
     }
 
-    function saveAnswer(formId, currentTabId) {
-        setAsReaded(currentTabId);
-        $("#" + formId + " :input").each(function () {
-            var input = $(this);
-            input.attr("disabled", true);
-        });
-        $("#answer" + currentTabId).addClass("disabled");
+    function saveAnswer(taskId, questionId) {
+        var tabId = $('.nav-tabs a.active').attr("id");
+        var targetId = $('.nav-tabs a.active').attr("data-bs-target");
+        setAsReaded(tabId, targetId);
+        $(taskId + " input:not(:checked)").attr('disabled', true);
+        $('#answer' + questionId).addClass("disabled");
     }
 </script>
 

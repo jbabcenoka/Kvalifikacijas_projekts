@@ -21,14 +21,12 @@ namespace ProgrammingCoursesApp.Controllers
             _context = context;
         }
 
-        // GET: Courses
         public async Task<IActionResult> Index()
         {
             return View(await _context.Courses.Where(c => c.IsOpened).ToListAsync());
         }
 
-        // GET: UserCourses
-        [Authorize]
+        [Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> UserCourses()
         {
             var currentUserId = User.Identity.GetUserId();
@@ -38,16 +36,13 @@ namespace ProgrammingCoursesApp.Controllers
             return View(userCourses);
         }
 
-        // GET: Courses/CreateCourse
+        [Authorize(Roles = "Admin, CourseCreator")]
         public IActionResult CreateCourse()
         {
             return View();
         }
 
-        // POST: Courses/CreateCourse
-        [Authorize]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> CreateCourse([Bind("Id,Name,Description")] Course course)
         {
             try 
@@ -69,8 +64,7 @@ namespace ProgrammingCoursesApp.Controllers
             return View(course);
         }
 
-        // GET: Courses/Edit/5
-        [Authorize]
+        [Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> EditCourse(int? id)
         {
             if (id == null)
@@ -94,9 +88,7 @@ namespace ProgrammingCoursesApp.Controllers
             return View(course);
         }
 
-        // POST: Courses/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> EditCourse(int id, [Bind("Id,Name,Description,IsOpened")] Course course)
         {
             if (id != course.Id)
@@ -127,7 +119,7 @@ namespace ProgrammingCoursesApp.Controllers
             return View(course);
         }
 
-        // GET: Courses/Delete/5
+        [Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> DeleteCourse(int? id)
         {
             if (id == null)
@@ -145,8 +137,7 @@ namespace ProgrammingCoursesApp.Controllers
             return View(course);
         }
 
-        // POST: Courses/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost, ActionName("Delete"), Authorize(Roles = "Admin, CourseCreator")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
@@ -156,6 +147,7 @@ namespace ProgrammingCoursesApp.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize(Roles = "Admin, CourseCreator")]
         private bool CourseExists(int id)
         {
             return _context.Courses.Any(e => e.Id == id);

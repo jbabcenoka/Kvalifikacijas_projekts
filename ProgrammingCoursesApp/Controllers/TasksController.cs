@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using ProgrammingCoursesApp.Controllers;
 using ProgrammingCoursesApp.Data;
 using ProgrammingCoursesApp.Models;
 using ProgrammingCoursesApp.ViewModels;
+using Microsoft.AspNet.Identity;
 
 namespace ProgrammingCoursesApp
 {
@@ -23,7 +20,6 @@ namespace ProgrammingCoursesApp
             _context = context;
         }
 
-        // GET: Tasks
         [Authorize]
         public async Task<IActionResult> Index(int? id)
         {
@@ -46,19 +42,37 @@ namespace ProgrammingCoursesApp
                                 .OrderBy(t => t.DisplayOrder)
                                 .Include(t => t.Task)
                                 .ToListAsync();
+            var blocks = new List<Block>();
+
+            foreach (var block in topicBlocks)
+            {
+                var blockTask = new Block
+                {
+                    TopicBlock = block,
+                    IsViewed = false
+                };
+
+                if (block.Task.GetType() == typeof(Exercise))
+                {
+                    var possibleAnswers = await _context.PossibleAnswers.Where(x => x.ExerciseId == block.Task.Id).ToListAsync();
+                    blockTask.PossibleAnswers = possibleAnswers;
+                }
+
+                blocks.Add(blockTask);
+            }
 
             var vm = new TasksVM
             {
                 TopicName = topic.Name,
                 TopicId = topic.Id,
                 CourseId = topic.CourseId,
-                TopicBlocks = topicBlocks
+                Blocks = blocks
             };
 
             return View(vm);
         }
 
-        //GET: TasksForCoursesCreator
+        [Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> TasksForCoursesCreator(int? id)
         {
             if (id == null)
@@ -80,29 +94,36 @@ namespace ProgrammingCoursesApp
                                 .OrderBy(t => t.DisplayOrder)
                                 .Include(t => t.Task)
                                 .ToListAsync();
-            
+            var blocks = new List<Block>();
+
+            foreach (var block in topicBlocks)
+            {
+                var blockTask = new Block
+                {
+                    TopicBlock = block
+                };
+
+                if (block.Task.GetType() == typeof(Exercise))
+                {
+                    var possibleAnswers = await _context.PossibleAnswers.Where(x => x.ExerciseId == block.Task.Id).ToListAsync();
+                    blockTask.PossibleAnswers = possibleAnswers;
+                }
+
+                blocks.Add(blockTask);
+            }
+
             var vm = new TasksVM
             {
                 TopicName = topic.Name,
                 TopicId = topic.Id,
                 CourseId = topic.CourseId,
-                TopicBlocks = topicBlocks
+                Blocks = blocks
             };
 
             return View("TasksForCoursesCreator", vm);
         }
 
-        //GET: 
-        [HttpGet]
-        public async Task<JsonResult> GetPossibleAnswers(int? id)
-        {
-            var answers = await _context.PossibleAnswers
-                            .Where(t => t.ExerciseId == id)
-                            .ToListAsync();
-            
-            return Json(answers);
-        }
-
+        [Authorize(Roles = "Admin, CourseCreator")]
         public IActionResult CreateExercise(int? id)
         {
             if (id == null)
@@ -118,6 +139,8 @@ namespace ProgrammingCoursesApp
 
             return View("ExerciseTaskEdit", vm);
         }
+        
+        [Authorize(Roles = "Admin, CourseCreator")]
         public IActionResult CreateVideoTask(int? id)
         {
             if (id == null)
@@ -133,6 +156,8 @@ namespace ProgrammingCoursesApp
 
             return View("VideoTaskCreateOrEdit", vm);
         }
+        
+        [Authorize(Roles = "Admin, CourseCreator")]
         public IActionResult CreateReadingTask(int? id)
         {
             if (id == null)
@@ -149,7 +174,7 @@ namespace ProgrammingCoursesApp
             return View("ReadTaskCreateOrEdit", vm);
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> CreateReadTask(int? id, [Bind("Name,Text,Points")] ReadTask readTask)
         {
             //ja tēma nav noradīta
@@ -202,7 +227,7 @@ namespace ProgrammingCoursesApp
             return View("ReadTaskCreateOrEdit", vm);
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> CreateVideoTask(int? id, [Bind("Name,Link,Points")] VideoTask videoTask)
         {
             //ja tēma nav noradīta
@@ -255,6 +280,7 @@ namespace ProgrammingCoursesApp
             return View("VideoTaskCreateOrEdit", vm);
         }
 
+        [Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -305,7 +331,7 @@ namespace ProgrammingCoursesApp
             }
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> EditReadTask(int id, [Bind("Id,TopicBlockId,Name,Text,Points")] ReadTask readTask)
         {
             if (id != readTask.Id)
@@ -348,7 +374,7 @@ namespace ProgrammingCoursesApp
             return View("ReadTaskCreateOrEdit", vm);
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> EditVideoTask(int id, [Bind("Id,TopicBlockId,Name,Link,Points")] VideoTask videoTask)
         {
             if (id != videoTask.Id)
@@ -390,7 +416,78 @@ namespace ProgrammingCoursesApp
 
             return View("VideoTaskCreateOrEdit", vm);
         }
-        
+
+        [HttpPost, Authorize]
+        public async Task<IActionResult> SubmitTopicResult(List<Block> Blocks)
+        {
+            foreach (var block in Blocks.Where(x => x.IsViewed))
+            {
+                var topicBlock = await _context.TopicBlocks.Include(t => t.Task).Where(t => t.Id == block.TopicBlock.Id).FirstOrDefaultAsync();
+
+                if (topicBlock != null) //topic block ir atrasts
+                {
+                    var taskResult = await _context.Results
+                            .Where(t => t.TaskId == topicBlock.Task.Id && t.User.Id == User.Identity.GetUserId())
+                            .FirstOrDefaultAsync(); //atrast lietotāja rezultātu
+
+                    if (taskResult == null) //lietotājam nav rezultāta par šo uzdevumu -izveidot jauno
+                    {
+                        var newResult = new Result
+                        {
+                            TaskId = topicBlock.Task.Id
+                        };
+
+                        if (topicBlock.Task.GetType() == typeof(ReadTask) || topicBlock.Task.GetType() == typeof(VideoTask))
+                        {
+                            newResult.Points = topicBlock.Points;
+                        }
+                        else //ir uzdevums
+                        {
+                            if (block.SelectedAnswer != null) //ja lietotājs ir atbildējis
+                            {
+                                var userAnswer = await _context.PossibleAnswers.FindAsync(block.SelectedAnswer);
+                                    
+                                if (userAnswer != null) //ja lietotāja atbilde eksistē datubāzē
+                                {
+                                    newResult.Points = userAnswer.IsCorrect ? topicBlock.Points : 0;
+                                }
+
+                                newResult.UserAnswer = userAnswer;
+                            }
+                        }
+
+                        newResult.User = await _context.Users.FirstOrDefaultAsync(u => u.Id == User.Identity.GetUserId());
+
+                        _context.Results.Add(newResult);
+                    }
+                    else //atrasts rezultāts - atjaunot rezultātu
+                    {
+                        if (topicBlock.Task.GetType() == typeof(ReadTask) || topicBlock.Task.GetType() == typeof(VideoTask))
+                        {
+                            taskResult.Points = topicBlock.Points;
+                        }
+                        else // ir uzdevums
+                        {
+                            var userAnswer = await _context.PossibleAnswers.FindAsync(block.SelectedAnswer);
+
+                            if (userAnswer != null) //ja lietotāja atbilde eksistē datubāzē
+                            {
+                                taskResult.Points = userAnswer.IsCorrect ? topicBlock.Points : 0;
+                            }
+
+                            taskResult.UserAnswer = userAnswer;
+                        }
+
+                        _context.Results.Update(taskResult);
+                    }
+                    _context.SaveChanges();
+                }
+            }
+
+            return NotFound();
+        }
+
+        [Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -409,6 +506,7 @@ namespace ProgrammingCoursesApp
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var topicBlock = await _context.TopicBlocks.FindAsync(id);
@@ -416,7 +514,7 @@ namespace ProgrammingCoursesApp
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-
+        
         private bool TopicBlockExists(int id)
         {
             return _context.TopicBlocks.Any(e => e.Id == id);

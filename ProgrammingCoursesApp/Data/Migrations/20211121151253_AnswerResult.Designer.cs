@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProgrammingCoursesApp.Data;
 
 namespace ProgrammingCoursesApp.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20211121151253_AnswerResult")]
+    partial class AnswerResult
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -284,16 +286,11 @@ namespace ProgrammingCoursesApp.Data.Migrations
                     b.Property<int?>("UserAnswerId")
                         .HasColumnType("int");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("TaskId");
 
                     b.HasIndex("UserAnswerId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Results");
                 });
@@ -491,13 +488,7 @@ namespace ProgrammingCoursesApp.Data.Migrations
                         .WithMany()
                         .HasForeignKey("UserAnswerId");
 
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
                     b.Navigation("Task");
-
-                    b.Navigation("User");
 
                     b.Navigation("UserAnswer");
                 });
