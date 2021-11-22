@@ -3,7 +3,7 @@
 @{
     var aspActionName = Model.IsCreation ? "CreateReadTask" : "EditReadTask";
     var routeId = Model.IsCreation ? Model.TopicId : Model.ReadTask.Id;
-    var title = Model.IsCreation ? "Create reading task" : "Edit reading task";
+    var title = Model.IsCreation ? "Reading task creation" : "Reading task edit";
 
     ViewData["Title"] = title;
 }

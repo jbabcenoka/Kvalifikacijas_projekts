@@ -1,4 +1,6 @@
 ﻿using ProgrammingCoursesApp.Models;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace ProgrammingCoursesApp.ViewModels
 {
@@ -10,5 +12,9 @@ namespace ProgrammingCoursesApp.ViewModels
 
         public int TopicId { get; set; }
         public bool IsCreation { get; set; }
+        public List<PossibleAnswer> PossibleAnswers { get; set; }
+
+        [Required]
+        public int? AnswerId { get; set; }
     }
 }

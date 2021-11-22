@@ -1,0 +1,176 @@
+﻿@model ProgrammingCoursesApp.ViewModels.CreateOrEditTaskVM
+
+@{
+    var title = Model.IsCreation ? "Exercise creation" : "Exercise edit";
+
+    var aspActionName = Model.IsCreation ? "CreateExerciseTask" : "EditExerciseTask";
+    var routeId = Model.IsCreation ? Model.TopicId : Model.Exercise.Id;
+
+    var possibleAnswerCount = Model.PossibleAnswers?.Count ?? 2;
+
+    ViewData["Title"] = title;
+}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+<script type="text/javascript">
+    var i = @(Model.PossibleAnswers?.Count ?? 0);
+
+    function addPossibleItemInput(event) {
+        event.preventDefault();
+        var table = document.getElementById("possibleAnswerItems");
+        var row = table.insertRow(-1);  //ja -1, tad pievienos tabulas beigās
+        
+        if (table.rows.length > 2)
+        {
+            $('#deleteRowButton').show();
+        }
+
+        //lauka pievienošana
+        let td = document.createElement("td");
+        let div = document.createElement("div");
+        div.setAttribute("class", "form-group");
+
+        let field = document.createElement("textarea");
+        field.setAttribute("class", "form-control valid");
+        field.setAttribute("name", "PossibleAnswers[" + i + "].Text");
+        field.setAttribute("id", "PossibleAnswers_" + i + "__Text");
+        field.setAttribute("data-val-required", "The Text field is required.");
+        field.setAttribute("aria-describedby", "PossibleAnswers_" + i +"__Text-error");
+        field.setAttribute("autocomplete", "off");
+        field.setAttribute("rows", "2");
+        field.setAttribute("data-val", "true");
+        field.setAttribute("aria-invalid", "false");
+
+        //kļūdas paziņojums laukam
+        let errorForField = document.createElement("span");
+        errorForField.setAttribute("class", "text-danger field-validation-valid");
+        errorForField.setAttribute("data-valmsg-for", "PossibleAnswers["+i+"].Text");
+        errorForField.setAttribute("data-valmsg-replace", "true");
+
+        div.appendChild(field);
+        div.appendChild(errorForField);
+        td.appendChild(div);
+        row.appendChild(td);
+
+        //lauka pievienošana - lauks "vai ir pareizi"
+        let td2 = document.createElement("td");
+        let div2 = document.createElement("div");
+        div2.setAttribute("class", "form-group");
+
+        let isCorrectField = document.createElement("input");
+        isCorrectField.setAttribute("type", "radio");
+        isCorrectField.setAttribute("id", "answer" + i);
+        isCorrectField.setAttribute("value", i);
+        isCorrectField.setAttribute("name", "Exercise.AnswerId");
+        isCorrectField.setAttribute("class", "form-control isCorrectBox");
+
+        //kļūdas paziņojums laukam "vai ir pareizi"
+        let errorForCorrectField = document.createElement("span");
+        errorForCorrectField.setAttribute("class", "text-danger field-validation-valid");
+        errorForCorrectField.setAttribute("data-valmsg-for", "Exercise.AnswerId");
+        errorForCorrectField.setAttribute("data-valmsg-replace", "true");
+
+        div2.appendChild(isCorrectField);
+        div2.appendChild(errorForCorrectField);
+        td2.appendChild(div2);
+        row.appendChild(td2);
+
+        i++;
+    }
+
+    function removePossibleItemInput(event) {
+        event.preventDefault();
+        var table = document.getElementById("possibleAnswerItems");
+        table.deleteRow(-1);
+        if (table.rows.length <= 2) {
+            $('#deleteRowButton').hide();
+        }
+        i--;
+    }
+
+</script>
+
+<h1>@title</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-8">
+        <form asp-action="@aspActionName" asp-route-id="@routeId">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            @if (!Model.IsCreation)
+            {
+                <input type="hidden" asp-for="Exercise.Id" />
+                <input type="hidden" asp-for="Exercise.TopicBlockId" />
+            }
+            <div class="form-group">
+                <label asp-for="Exercise.Name" class="control-label"></label>
+                <input asp-for="Exercise.Name" class="form-control" autocomplete="off" />
+                <span asp-validation-for="Exercise.Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Exercise.QuestionText" class="control-label"></label>
+                <input asp-for="Exercise.QuestionText" class="form-control" autocomplete="off" />
+                <span asp-validation-for="Exercise.QuestionText" class="text-danger"></span>
+            </div>
+
+            <table class="form-group" id="possibleAnswerItems" width="100%">
+                @for (int itemIndex = 0; itemIndex < possibleAnswerCount; itemIndex++)
+                {
+                    <tr class="form-group">
+                        <td class="questionBox">
+                            <input type="hidden" asp-for="PossibleAnswers[itemIndex].Id" />
+                            <div class="form-group">
+                                <label asp-for="PossibleAnswers[itemIndex].Text" class="control-label">Question answer #@(itemIndex+1)</label>
+                                <textarea asp-for="PossibleAnswers[itemIndex].Text" class="form-control" rows="2" autocomplete="off"></textarea>
+                                <span asp-validation-for="PossibleAnswers[itemIndex].Text" class="text-danger"></span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="form-group">
+                                <label for="answer@(itemIndex)" class="control-label">Correctness</label>
+                                <input type="radio"
+                                       id="answer@(itemIndex)"
+                                       asp-for="Exercise.AnswerId"
+                                       value="@itemIndex"
+                                       class="form-control isCorrectBox" />
+                                @*value="@(Model.PossibleAnswers != null ? Model.PossibleAnswers[itemIndex].Id : itemIndex)"*@
+                                <span asp-validation-for="Exercise.AnswerId" class="text-danger"></span>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </table>
+
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="addPossibleItemInput(event)">Add possible answer</button>
+                <button class="btn btn-danger" id="deleteRowButton" onclick="removePossibleItemInput(event)" @(possibleAnswerCount <= 2 ? "hidden" : null)>Remove possible answer</button>
+            </div>
+            <div class="form-group">
+                <label asp-for="Exercise.Points" class="control-label"></label>
+                <input asp-for="Exercise.Points" class="form-control" />
+                <span asp-validation-for="Exercise.Points" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <a class="btn btn-info" asp-action="TasksForCoursesCreator" asp-route-id="@Model.TopicId">Back to topics</a>
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<style>
+    .isCorrectBox {
+        width: 20px;
+        margin-left: 30%;
+    }
+
+    .questionBox {
+        width: 80%;
+    }
+</style>

@@ -137,7 +137,7 @@ namespace ProgrammingCoursesApp
                 TopicId = id.Value
             };
 
-            return View("ExerciseTaskEdit", vm);
+            return View("ExerciseTaskCreateOrEdit", vm);
         }
         
         [Authorize(Roles = "Admin, CourseCreator")]
@@ -280,6 +280,77 @@ namespace ProgrammingCoursesApp
             return View("VideoTaskCreateOrEdit", vm);
         }
 
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "Admin, CourseCreator")]
+        public async Task<IActionResult> CreateExerciseTask(int? id, [Bind("Name,QuestionText,PossibleAnswers,Points")] Exercise exerciseTask)
+        {
+            //ja tēma nav noradīta
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            //atrast tēmu
+            var topic = await _context.Topics
+                                .Where(t => t.Id == id)
+                                .FirstOrDefaultAsync();
+
+            if (topic == null) //tēma neeksistē
+            {
+                return NotFound();
+            }
+
+            var maxDisplayOrder = await _context.TopicBlocks.Where(t => t.TopicId == id).MaxAsync(d => d.DisplayOrder);
+
+            var topicBlock = new TopicBlock();  //izveidot jauno tēmas bloku
+            topicBlock.Points = exerciseTask.Points;
+            topicBlock.DisplayOrder = maxDisplayOrder + 1;
+            topicBlock.Topic = topic;
+            exerciseTask.TopicBlock = topicBlock;
+            
+            //atļaut izvedot uzdevumu, kurā ir vismaz 2 atbilžu varianti
+            if (exerciseTask.PossibleAnswers == null || exerciseTask.PossibleAnswers.Count < 2)
+            {
+                return NotFound();
+            }
+
+            //atļaut izvedot uzdevumu, kurā ir tikai viena pareiza atbilde
+            if (exerciseTask.PossibleAnswers.Where(x => x.IsCorrect).Count() != 1)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    foreach (var answer in exerciseTask.PossibleAnswers)
+                    {
+                        await _context.PossibleAnswers.AddAsync(answer);
+                    }
+
+                    await _context.TopicBlocks.AddAsync(topicBlock);
+                    await _context.Tasks.AddAsync(exerciseTask);
+
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    throw;
+                }
+                return RedirectToAction(nameof(TasksForCoursesCreator), new { id = id });
+            }
+
+            //ja nesanāca izveidot uzdevumu - atgriezties atpakaļ uz skatu
+            var vm = new CreateOrEditTaskVM
+            {
+                IsCreation = true,
+                Exercise = exerciseTask,
+                TopicId = id.Value
+            };
+
+            return View("VideoTaskCreateOrEdit", vm);
+        }
+
         [Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -320,14 +391,11 @@ namespace ProgrammingCoursesApp
             else //exercise
             {
                 var exerciseTask = (Exercise)task;
-
-                var possibleAnswers = await _context.PossibleAnswers
-                                        .Where(t => t.ExerciseId == task.Id)
-                                        .ToListAsync();
-
-                exerciseTask.PossibleAnswers = possibleAnswers;
+                var possibleAnswers = await _context.PossibleAnswers.Where(t => t.ExerciseId == task.Id).ToListAsync();
                 vm.Exercise = exerciseTask;
-                return View("ExerciseTaskEdit", vm);
+                vm.AnswerId = exerciseTask.AnswerId;
+                vm.PossibleAnswers = possibleAnswers;
+                return View("ExerciseTaskCreateOrEdit", vm);
             }
         }
 
@@ -415,6 +483,12 @@ namespace ProgrammingCoursesApp
             };
 
             return View("VideoTaskCreateOrEdit", vm);
+        }
+
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "Admin, CourseCreator")]
+        public async Task<IActionResult> EditExerciseTask(int id, [Bind("Id,TopicBlockId,QuestionText,Name,Points,AnswerId")] Exercise exercise, [Bind("Id,Text")] List<PossibleAnswer> possibleAnswers)
+        {
+            return null;
         }
 
         [HttpPost, Authorize]
