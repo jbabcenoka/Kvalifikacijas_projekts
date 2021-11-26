@@ -9,6 +9,6 @@ namespace ProgrammingCoursesApp.Models
         [Required]
         public string Text { get; set; }
         public bool IsCorrect { get; set; }
-        public int? ExerciseId { get; set; }
+        public int ExerciseId { get; set; }
     }
 }

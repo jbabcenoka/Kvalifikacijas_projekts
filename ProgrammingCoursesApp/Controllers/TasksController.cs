@@ -8,6 +8,7 @@ using ProgrammingCoursesApp.Data;
 using ProgrammingCoursesApp.Models;
 using ProgrammingCoursesApp.ViewModels;
 using Microsoft.AspNet.Identity;
+using ProgrammingCoursesApp.Controllers;
 
 namespace ProgrammingCoursesApp
 {
@@ -48,15 +49,41 @@ namespace ProgrammingCoursesApp
             {
                 var blockTask = new Block
                 {
-                    TopicBlock = block,
-                    IsViewed = false
+                    TopicBlock = block
                 };
 
                 if (block.Task.GetType() == typeof(Exercise))
                 {
                     var possibleAnswers = await _context.PossibleAnswers.Where(x => x.ExerciseId == block.Task.Id).ToListAsync();
                     blockTask.PossibleAnswers = possibleAnswers;
+
+                    blockTask.CorrectAnswerId = possibleAnswers.Where(x => x.IsCorrect).Select(x => x.Id).FirstOrDefault();
+
+                    var userAnswer = await _context.Results
+                            .Where(x => x.User.Id == User.Identity.GetUserId() && x.TaskId == block.Task.Id)
+                            .Select(x => new { x.Points, x.UserAnswer })
+                            .FirstOrDefaultAsync();
+
+                    if (userAnswer != null) 
+                    {
+                        blockTask.SelectedAnswer = userAnswer.UserAnswer.Id;
+                        blockTask.SelectedAnswerText = userAnswer.UserAnswer.Text;
+                        blockTask.UserScore = userAnswer.Points;
+                    }
                 }
+                else
+                {
+                    var userResult = await _context.Results
+                            .Where(x => x.User.Id == User.Identity.GetUserId() && x.TaskId == block.Task.Id)
+                            .FirstOrDefaultAsync();
+
+                    if (userResult != null)
+                    {
+                        blockTask.UserScore = userResult.Points;
+                    }
+                }
+
+                blockTask.IsViewed = blockTask.UserScore != null ? true : false;
 
                 blocks.Add(blockTask);
             }
@@ -281,7 +308,7 @@ namespace ProgrammingCoursesApp
         }
 
         [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "Admin, CourseCreator")]
-        public async Task<IActionResult> CreateExerciseTask(int? id, [Bind("Name,QuestionText,PossibleAnswers,Points")] Exercise exerciseTask)
+        public async Task<IActionResult> CreateExerciseTask(int? id, [Bind("Name,QuestionText,Points,AnswerId")] Exercise exercise, [Bind("Id,Text")] List<PossibleAnswer> possibleAnswers)
         {
             //ja tēma nav noradīta
             if (id == null)
@@ -299,57 +326,68 @@ namespace ProgrammingCoursesApp
                 return NotFound();
             }
 
-            var maxDisplayOrder = await _context.TopicBlocks.Where(t => t.TopicId == id).MaxAsync(d => d.DisplayOrder);
-
             var topicBlock = new TopicBlock();  //izveidot jauno tēmas bloku
-            topicBlock.Points = exerciseTask.Points;
-            topicBlock.DisplayOrder = maxDisplayOrder + 1;
+
+            var topicTasks = await _context.TopicBlocks.Where(t => t.TopicId == id).ToListAsync();
+
+            topicBlock.DisplayOrder = topicTasks.Count == 0 ? 0 : topicBlock.DisplayOrder = topicTasks.Max(d => d.DisplayOrder) + 1;
+            
+            topicBlock.Points = exercise.Points;
             topicBlock.Topic = topic;
-            exerciseTask.TopicBlock = topicBlock;
+            exercise.TopicBlock = topicBlock;
             
             //atļaut izvedot uzdevumu, kurā ir vismaz 2 atbilžu varianti
-            if (exerciseTask.PossibleAnswers == null || exerciseTask.PossibleAnswers.Count < 2)
+            if (possibleAnswers == null || possibleAnswers.Count < 2)
             {
                 return NotFound();
             }
 
-            //atļaut izvedot uzdevumu, kurā ir tikai viena pareiza atbilde
-            if (exerciseTask.PossibleAnswers.Where(x => x.IsCorrect).Count() != 1)
+            //ja nav atbildes - kļuda
+            if (exercise.AnswerId == null)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            try
             {
-                try
+                await _context.TopicBlocks.AddAsync(topicBlock);
+                await _context.Tasks.AddAsync(exercise);
+
+                foreach (var answer in possibleAnswers)
                 {
-                    foreach (var answer in exerciseTask.PossibleAnswers)
+                    if (answer.Id == exercise.AnswerId)
                     {
-                        await _context.PossibleAnswers.AddAsync(answer);
+                        answer.IsCorrect = true;
                     }
 
-                    await _context.TopicBlocks.AddAsync(topicBlock);
-                    await _context.Tasks.AddAsync(exerciseTask);
+                    if (exercise.PossibleAnswers == null)
+                    {
+                        exercise.PossibleAnswers = new List<PossibleAnswer>();
+                    }
 
-                    await _context.SaveChangesAsync();
+                    exercise.PossibleAnswers.Add(answer);
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    throw;
-                }
-                return RedirectToAction(nameof(TasksForCoursesCreator), new { id = id });
+
+                await _context.AddAsync(exercise);
+
+                await _context.SaveChangesAsync();
             }
-
-            //ja nesanāca izveidot uzdevumu - atgriezties atpakaļ uz skatu
-            var vm = new CreateOrEditTaskVM
+            catch (DbUpdateConcurrencyException)
             {
-                IsCreation = true,
-                Exercise = exerciseTask,
-                TopicId = id.Value
-            };
-
-            return View("VideoTaskCreateOrEdit", vm);
+                throw;
+            }
+            
+            return RedirectToAction(nameof(TasksForCoursesCreator), new { id = id });
         }
+
+        [Authorize(Roles = "Admin, CourseCreator")]
+        public ActionResult AddPossibleAnswer()
+        {
+            var vm = new CreateOrEditTaskVM();
+
+            return PartialView("AddPossibleAnswerPartialView", vm);
+        }
+
 
         [Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> Edit(int? id)
@@ -492,7 +530,7 @@ namespace ProgrammingCoursesApp
         }
 
         [HttpPost, Authorize]
-        public async Task<IActionResult> SubmitTopicResult(List<Block> Blocks)
+        public async Task<IActionResult> SubmitTopicResult(List<Block> Blocks, int courseId)
         {
             foreach (var block in Blocks.Where(x => x.IsViewed))
             {
@@ -536,11 +574,7 @@ namespace ProgrammingCoursesApp
                     }
                     else //atrasts rezultāts - atjaunot rezultātu
                     {
-                        if (topicBlock.Task.GetType() == typeof(ReadTask) || topicBlock.Task.GetType() == typeof(VideoTask))
-                        {
-                            taskResult.Points = topicBlock.Points;
-                        }
-                        else // ir uzdevums
+                        if (topicBlock.Task.GetType() == typeof(Exercise))
                         {
                             var userAnswer = await _context.PossibleAnswers.FindAsync(block.SelectedAnswer);
 
@@ -550,15 +584,14 @@ namespace ProgrammingCoursesApp
                             }
 
                             taskResult.UserAnswer = userAnswer;
+                            _context.Results.Update(taskResult);
                         }
-
-                        _context.Results.Update(taskResult);
                     }
                     _context.SaveChanges();
                 }
             }
 
-            return NotFound();
+            return RedirectToAction(nameof(TopicsController.Index), "Topics", new { id = courseId } );
         }
 
         [Authorize(Roles = "Admin, CourseCreator")]

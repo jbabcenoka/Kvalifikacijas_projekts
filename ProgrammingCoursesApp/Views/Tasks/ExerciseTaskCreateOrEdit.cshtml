@@ -6,7 +6,7 @@
     var aspActionName = Model.IsCreation ? "CreateExerciseTask" : "EditExerciseTask";
     var routeId = Model.IsCreation ? Model.TopicId : Model.Exercise.Id;
 
-    var possibleAnswerCount = Model.PossibleAnswers?.Count ?? 2;
+    var possibleAnswerCount = Model.PossibleAnswers == null ? 2 : Model.PossibleAnswers.Count;
 
     ViewData["Title"] = title;
 }
@@ -15,19 +15,18 @@
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 
 <script type="text/javascript">
-    var i = @(Model.PossibleAnswers?.Count ?? 0);
+    var i = @possibleAnswerCount;
 
     function addPossibleItemInput(event) {
         event.preventDefault();
         var table = document.getElementById("possibleAnswerItems");
+
         var row = table.insertRow(-1);  //ja -1, tad pievienos tabulas beigās
-        
-        if (table.rows.length > 2)
-        {
-            $('#deleteRowButton').show();
+
+        if (i >= 2) {
+            $('#deleteRowButton').removeAttr('hidden');
         }
 
-        //lauka pievienošana
         let td = document.createElement("td");
         let div = document.createElement("div");
         div.setAttribute("class", "form-group");
@@ -41,7 +40,6 @@
         field.setAttribute("autocomplete", "off");
         field.setAttribute("rows", "2");
         field.setAttribute("data-val", "true");
-        field.setAttribute("aria-invalid", "false");
 
         //kļūdas paziņojums laukam
         let errorForField = document.createElement("span");
@@ -83,11 +81,13 @@
     function removePossibleItemInput(event) {
         event.preventDefault();
         var table = document.getElementById("possibleAnswerItems");
-        table.deleteRow(-1);
-        if (table.rows.length <= 2) {
-            $('#deleteRowButton').hide();
-        }
+            table.deleteRow(-1);
+
         i--;
+
+        if (i == 2) {
+            $('#deleteRowButton').attr("hidden", true);
+        }
     }
 
 </script>
@@ -98,7 +98,7 @@
 <div class="row">
     <div class="col-md-8">
         <form asp-action="@aspActionName" asp-route-id="@routeId">
-            <div asp-validation-summary="All" class="text-danger"></div>
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             @if (!Model.IsCreation)
             {
                 <input type="hidden" asp-for="Exercise.Id" />
@@ -122,20 +122,17 @@
                         <td class="questionBox">
                             <input type="hidden" asp-for="PossibleAnswers[itemIndex].Id" />
                             <div class="form-group">
-                                <label asp-for="PossibleAnswers[itemIndex].Text" class="control-label">Question answer #@(itemIndex+1)</label>
                                 <textarea asp-for="PossibleAnswers[itemIndex].Text" class="form-control" rows="2" autocomplete="off"></textarea>
                                 <span asp-validation-for="PossibleAnswers[itemIndex].Text" class="text-danger"></span>
                             </div>
                         </td>
                         <td>
                             <div class="form-group">
-                                <label for="answer@(itemIndex)" class="control-label">Correctness</label>
                                 <input type="radio"
                                        id="answer@(itemIndex)"
                                        asp-for="Exercise.AnswerId"
                                        value="@itemIndex"
                                        class="form-control isCorrectBox" />
-                                @*value="@(Model.PossibleAnswers != null ? Model.PossibleAnswers[itemIndex].Id : itemIndex)"*@
                                 <span asp-validation-for="Exercise.AnswerId" class="text-danger"></span>
                             </div>
                         </td>
@@ -145,7 +142,7 @@
 
             <div class="form-group">
                 <button class="btn btn-primary" onclick="addPossibleItemInput(event)">Add possible answer</button>
-                <button class="btn btn-danger" id="deleteRowButton" onclick="removePossibleItemInput(event)" @(possibleAnswerCount <= 2 ? "hidden" : null)>Remove possible answer</button>
+                <button class="btn btn-danger" id="deleteRowButton" onclick="removePossibleItemInput(event)" @(possibleAnswerCount <= 2 ? "hidden" : null) >Remove possible answer</button>
             </div>
             <div class="form-group">
                 <label asp-for="Exercise.Points" class="control-label"></label>

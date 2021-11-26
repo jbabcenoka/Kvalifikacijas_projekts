@@ -8,7 +8,7 @@ namespace ProgrammingCoursesApp.Models
         public int Id { get; set; }
         [Required]
         public string Name { get; set; }
-        public int TopicBlockId { get; set; }
+        public int? TopicBlockId { get; set; }
         public TopicBlock TopicBlock { get; set; }
 
         [NotMapped, Required]

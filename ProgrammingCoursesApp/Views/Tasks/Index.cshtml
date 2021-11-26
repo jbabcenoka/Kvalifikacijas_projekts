@@ -7,6 +7,86 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(".nav-tabs a").on('show.bs.tab', function (e) {
+            if (!$(this).hasClass('exercise')) {
+                var tabId = $(this).attr("id");
+                var targetId = $(this).attr("data-bs-target");
+                setAsReaded(tabId, targetId);
+            }
+        });
+
+        $(".nav-tabs a:first-child").tab('show');
+    })
+
+    function showNextTab(currentTabId) {
+        $("#tab" + currentTabId).next().tab('show');
+    }
+
+    function saveAnswer(taskId, questionId) {
+        var tabId = $('.nav-tabs a.active').attr("id");
+        var targetId = $('.nav-tabs a.active').attr("data-bs-target");
+        setAsReaded(tabId, targetId);
+        $(taskId + " input:not(:checked)").attr('disabled', true);
+        $('#answer' + questionId).addClass("disabled");
+    }
+
+    function setAsReaded(id, targetId) {
+        if (!$('#' + id).hasClass('readed')) {
+            $('#' + id).addClass('readed');
+        }
+
+        $(targetId + "-input").val(true);
+    }
+
+    function getResult(correctId, event) {
+        event.preventDefault();
+        var currentTab = $('.nav-tabs a.active');
+
+        if (!currentTab.hasClass('readed')) {
+            currentTab.addClass('readed');
+        }
+
+        let target = currentTab.attr("data-bs-target");
+        var checkedAnswerId = $(target + ' input:checked').attr('id');
+
+        let isCorrect = checkedAnswerId == correctId;
+
+        if (isCorrect && currentTab.hasClass('canImproveResult')) {
+            currentTab.removeClass('canImproveResult');
+        } else if (checkedAnswerId != correctId && !currentTab.hasClass('canImproveResult')) {
+            currentTab.addClass('canImproveResult');
+        }
+
+        $(target + ' div.resultBox').removeAttr('hidden');
+
+        var answerText = $('label[for=' + checkedAnswerId + ']').text();
+
+        $(target + ' div.resultBox').html('<b>Your answer:</b> <span>' + answerText + '.</span></br>');
+
+        if (isCorrect) {
+            if ($(target + ' div.resultBox').hasClass('incorrectResult')) {
+                $(target + ' div.resultBox').removeClass('incorrectResult');
+            }
+            $(target + ' div.resultBox').append('<b>Answer</b>: Your answer is correct!');
+            $(target + ' div.resultBox').addClass('correctResult');
+        }
+        else
+        {
+            $(target + ' div.resultBox').append('<b>Answer</b>: Your answer is not correct.');
+            $(target + ' div.resultBox').addClass('incorrectResult');
+        }
+
+        $(target + ' button.answer').html('Try again');
+
+        var tabId = $(".nav-tabs a.active").attr("id");
+        var targetId = $(".nav-tabs a.active").attr("data-bs-target");
+
+        setAsReaded(tabId, targetId);
+    }
+</script>
+
 <h2>@Model.TopicName</h2>
 
 @if (Model.Blocks.Count() == 0)
@@ -20,26 +100,28 @@
 }
 else
 {
-    <form asp-action="SubmitTopicResult" id="myform">
-        <nav>
-            <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                @foreach (var topicBlock in Model.Blocks)
-                {
-                    <a class="nav-link nav-tab-link @(topicBlock.TopicBlock.Task.GetType() == typeof(Exercise) ? "exercise" : null)"
-                       data-bs-toggle="tab" role="tab"
-                       data-bs-target="#topic@(topicBlock.TopicBlock.Id)" id="tab@(topicBlock.TopicBlock.Id)">
+    <nav>
+        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+            @foreach (var topicBlock in Model.Blocks)
+            {
+                <a class="nav-link nav-tab-link @(topicBlock.IsViewed ? "readed" : null)
+                    @((topicBlock.IsViewed && topicBlock.UserScore != topicBlock.TopicBlock.Points) ? "canImproveResult" : null)
+                    @(topicBlock.TopicBlock.Task.GetType() == typeof(Exercise) ? "exercise" : null)"
 
-                        @if (topicBlock.TopicBlock.Task.GetType() == typeof(VideoTask))
-                        {<span>Video</span> }
-                        else if (topicBlock.TopicBlock.Task.GetType() == typeof(ReadTask))
-                        { <span>Reading</span> }
-                        else
-                        { <span>Exercise</span>}
-                    </a>
-                }
-            </div>
-        </nav>
+                    data-bs-toggle="tab" role="tab"
+                    data-bs-target="#topic@(topicBlock.TopicBlock.Id)" id="tab@(topicBlock.TopicBlock.Id)">
 
+                    @if (topicBlock.TopicBlock.Task.GetType() == typeof(VideoTask))
+                    {<span>Video</span> }
+                    else if (topicBlock.TopicBlock.Task.GetType() == typeof(ReadTask))
+                    { <span>Reading</span> }
+                    else
+                    { <span>Exercise</span>}
+                </a>
+            }
+        </div>
+    </nav>
+    <form asp-action="SubmitTopicResult" asp-route-courseId="@Model.CourseId">
         <div class="tab-content">
             @for(int i = 0; i < Model.Blocks.Count; i++)
             {
@@ -49,6 +131,7 @@ else
                     <input id="topic@(block.TopicBlock.Id)-input" asp-for="Blocks[i].IsViewed" value="@Model.Blocks[i].IsViewed" type="hidden" />
                     
                     <box class="points-box">Points: @block.TopicBlock.Points</box>
+
                     @if (block.TopicBlock.Task.GetType() == typeof(ReadTask))
                     {
                         var task = (ReadTask)block.TopicBlock.Task;
@@ -73,9 +156,11 @@ else
                     else   //uzdevums
                     {
                         var task = (Exercise)block.TopicBlock.Task;
-
                         <div class="exercise-content task-content">
-                            <h4>@task.Name</h4>
+                            @if (!string.IsNullOrEmpty(task.QuestionText))
+                            {
+                                <h4>@task.Name</h4>
+                            }
 
                             <h4>@task.QuestionText</h4>
 
@@ -85,15 +170,30 @@ else
                                     <input type="radio" id="@answer.Id" asp-for="Blocks[i].SelectedAnswer" value="@answer.Id" />
                                     <label for="@answer.Id" class="answer-label">@answer.Text</label><br />
                                 }
-                                <a id="answer@(block.TopicBlock.Id)" class="btn btn-success answer" onclick="saveAnswer('#answers-@(task.Id)', @block.TopicBlock.Id)">Answer the question</a>
+
+                                @if (block.SelectedAnswer != null)
+                                {
+                                    <div class="resultBox @(block.SelectedAnswer == block.CorrectAnswerId ? "correctResult" : "incorrectResult")">
+                                        <span><b>Your answer</b>: @block.SelectedAnswerText</span><br />
+                                        <span><b>Answer</b>: Your answer is @(block.SelectedAnswer == block.CorrectAnswerId ? "correct!" : "not correct.") </span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="resultBox" hidden></div>
+                                }
+
+                                <button class="btn btn-success answer" onclick="getResult(@block.CorrectAnswerId, event)">
+                                    @(block.SelectedAnswer == null ? "Answer the question" : "Try again")
+                                </button>
                             </div>
-                        </div>
+                                </div>
                     }
 
                     <div class="buttons-panel">
-                        <a class="btn btn-info" asp-controller="Topics" asp-action="Index" asp-route-id="@Model.CourseId">Back to topics</a>
+                        <a class="btn btn-info" asp-controller="Topics" asp-action="Index" asp-route-id="@Model.CourseId">Back to topic</a>
 
-                        <button type="submit" id="submit-tasks" class="btn btn-success">Submit</button>
+                        <button type="submit" id="submit-tasks" class="btn btn-success">Save progress and return to topic</button>
 
                         @if (i < Model.Blocks.Count - 1)
                         {
@@ -105,37 +205,6 @@ else
         </div>
     </form>
 }
-
-<script type="text/javascript">
-    $(document).ready(function () {
-        $(".nav-tabs a").on('show.bs.tab', function (e) {
-            if (!$(this).hasClass('exercise')) {
-                var tabId = $(this).attr("id");
-                var targetId = $(this).attr("data-bs-target");
-                setAsReaded(tabId, targetId);
-            }
-        });
-
-        $(".nav-tabs a:first-child").tab('show');
-    })
-
-    function setAsReaded(id, targetId) {
-        $('#' + id).addClass('readed');
-        $(targetId +"-input").val(true);
-    }
-
-    function showNextTab(currentTabId) {
-        $("#tab" + currentTabId).next().tab('show');
-    }
-
-    function saveAnswer(taskId, questionId) {
-        var tabId = $('.nav-tabs a.active').attr("id");
-        var targetId = $('.nav-tabs a.active').attr("data-bs-target");
-        setAsReaded(tabId, targetId);
-        $(taskId + " input:not(:checked)").attr('disabled', true);
-        $('#answer' + questionId).addClass("disabled");
-    }
-</script>
 
 <style>
 
@@ -166,6 +235,21 @@ else
         margin-right: 5px;
         color: #1234d5;
         cursor: default;
+    }
+
+    .resultBox {
+        margin-top: 30px;
+        margin-bottom: 20px;
+        padding: 10px 0px 10px 30px;
+        box-shadow: 10px 10px 5px 2px rgb(0 0 255 / 20%);
+    }
+
+    .correctResult {
+        background-color: rgb(144,238,144,0.4);
+    }
+
+    .incorrectResult {
+        background-color: #e9c8c8;
     }
 
     .answer-label {
@@ -215,6 +299,11 @@ else
 
     .readed {
         background-color: powderblue;
+        color: #000;
+    }
+
+    .canImproveResult {
+        background-color: #e9c8c8;
         color: #000;
     }
 

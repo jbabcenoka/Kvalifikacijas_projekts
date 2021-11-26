@@ -64,7 +64,7 @@ else
                         <div>
                             @foreach (var answer in block.PossibleAnswers)
                             {
-                                <input type="radio" id="@answer.Id" value="@answer.Id" disabled />
+                                <input type="radio" id="@answer.Id" value="@answer.Id" disabled @(answer.IsCorrect ? "checked" : null)/>
                                 <label for="@answer.Id" class="answer-label">@answer.Text</label><br />
                             }
                         </div>
