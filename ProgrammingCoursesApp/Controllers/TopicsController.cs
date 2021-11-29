@@ -85,14 +85,14 @@ namespace ProgrammingCoursesApp.Controllers
                 return NotFound();
             }
 
-            //iegūt kursu ar tēmām
-            var course = await _context.Courses.FirstOrDefaultAsync();
+            var course = await _context.Courses.FindAsync(id);
 
             if (course == null)
             {
                 return NotFound();
             }
 
+            //iegūt kursu ar tēmām
             var topics = await _context.Topics
                             .Where(c => c.CourseId == id)
                             .OrderBy(t => t.DisplayOrder)
@@ -233,30 +233,48 @@ namespace ProgrammingCoursesApp.Controllers
         }
 
         [Authorize(Roles = "Admin, CourseCreator")]
-        public async Task<IActionResult> DeleteTopic(int? id)
+        public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var topic = await _context.Topics
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (topic == null)
+            var topic = await _context.Topics.FindAsync(id);
+
+            if (topic == null) //tēma neeksistē
             {
                 return NotFound();
             }
 
-            return View(topic);
+            var courseId = topic.CourseId;
+
+            await DeleteTopic(id.Value, _context);
+
+            return RedirectToAction(nameof(TopicsForCreator), new { id = courseId });
         }
 
-        [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken, Authorize(Roles = "Admin, CourseCreator")]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "Admin, CourseCreator")]
+        public static async System.Threading.Tasks.Task DeleteTopic(int id, ApplicationDbContext context)
         {
-            var topic = await _context.Topics.FindAsync(id);
-            _context.Topics.Remove(topic);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                var topic = await context.Topics.FindAsync(id);
+
+                var topicBlocks = await context.TopicBlocks.Where(x => x.TopicId == topic.Id).ToListAsync();
+
+                foreach (var block in topicBlocks)
+                {
+                    await TasksController.DeleteTask(block.Id, context);
+                }
+
+                context.Topics.Remove(topic);
+                await context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         private bool TopicExists(int id)

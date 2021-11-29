@@ -9,6 +9,7 @@ using ProgrammingCoursesApp.Models;
 using ProgrammingCoursesApp.ViewModels;
 using Microsoft.AspNet.Identity;
 using ProgrammingCoursesApp.Controllers;
+using System;
 
 namespace ProgrammingCoursesApp
 {
@@ -220,7 +221,9 @@ namespace ProgrammingCoursesApp
                 return NotFound();
             }
 
-            var maxDisplayOrder = await _context.TopicBlocks.Where(t => t.TopicId == id).MaxAsync(d => d.DisplayOrder);
+            var topicBlocks = await _context.TopicBlocks.Where(t => t.TopicId == id).ToListAsync();
+            
+            var maxDisplayOrder = topicBlocks.Count == 0 ? 0 : topicBlocks.Max(x => x.DisplayOrder);
 
             var topicBlock = new TopicBlock();
             topicBlock.Points = readTask.Points;
@@ -355,7 +358,7 @@ namespace ProgrammingCoursesApp
 
                 foreach (var answer in possibleAnswers)
                 {
-                    if (answer.Id == exercise.AnswerId)
+                    if (possibleAnswers.IndexOf(answer) == exercise.AnswerId)
                     {
                         answer.IsCorrect = true;
                     }
@@ -602,24 +605,42 @@ namespace ProgrammingCoursesApp
                 return NotFound();
             }
 
-            var topicBlock = await _context.TopicBlocks.FirstOrDefaultAsync(m => m.Id == id);
-            if (topicBlock == null)
-            {
-                return NotFound();
-            }
+            var taskTopicId = await _context.Tasks
+                .Where(x => x.Id == id)
+                .Select(x => x.TopicBlock.TopicId)
+                .FirstOrDefaultAsync();
 
-            return View(topicBlock);
+            await DeleteTask(id.Value, _context);
+
+            return RedirectToAction(nameof(TasksForCoursesCreator), new { id = taskTopicId });
         }
 
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin, CourseCreator")]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        [HttpPost, Authorize(Roles = "Admin, CourseCreator")]
+        public static async System.Threading.Tasks.Task DeleteTask(int id, ApplicationDbContext context)
         {
-            var topicBlock = await _context.TopicBlocks.FindAsync(id);
-            _context.TopicBlocks.Remove(topicBlock);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                var task = await context.Tasks.FindAsync(id);
+
+                //dzest uzdevuma rezultātus
+                var taskResults = await context.Results.Where(x => x.TaskId == task.Id).ToListAsync();
+                context.Results.RemoveRange(taskResults);
+
+                //dzēst uzdevuma atbildes
+                var taskAnswers = await context.PossibleAnswers.Where(x => x.ExerciseId == task.Id).ToListAsync();
+                context.PossibleAnswers.RemoveRange(taskAnswers);
+            
+                var topicBlock = await context.TopicBlocks.Where(x => x.Id == task.TopicBlockId).FirstOrDefaultAsync();
+
+                context.Tasks.Remove(task);  //dzēst uzdevumu
+                context.TopicBlocks.Remove(topicBlock);  //dzēst tēmas bloku
+
+                await context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
         
         private bool TopicBlockExists(int id)

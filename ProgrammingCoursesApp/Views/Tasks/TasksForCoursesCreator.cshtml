@@ -32,7 +32,9 @@ else
                     </div>
                     <div class="task-buttons">
                         <a class="btn btn-outline-primary" asp-controller="Tasks" asp-action="Edit" asp-route-id="@task.Id">Edit</a>
-                        <a class="btn btn-outline-danger">Delete</a>
+                        <a class="btn btn-outline-danger" asp-controller="Tasks" 
+                           onclick="return getConfirmation('Are you sure you want to delete selected task?')" 
+                           asp-action="Delete" asp-route-id="@task.Id">Delete</a>
                     </div>
                 }
                 else if (block.TopicBlock.Task.GetType() == typeof(VideoTask))
@@ -49,7 +51,9 @@ else
                     </div>
                     <div class="task-buttons">
                         <a class="btn btn-outline-primary" asp-controller="Tasks" asp-action="Edit" asp-route-id="@task.Id">Edit</a>
-                        <a class="btn btn-outline-danger">Delete</a>
+                        <a class="btn btn-outline-danger" asp-controller="Tasks" 
+                           onclick="return getConfirmation('Are you sure you want to delete selected task?')" 
+                           asp-action="Delete" asp-route-id="@task.Id">Delete</a>
                     </div>
                 }
                 else   //uzdevums
@@ -71,7 +75,9 @@ else
                     </div>
                     <div class="task-buttons">
                         <a class="btn btn-outline-primary" asp-controller="Tasks" asp-action="Edit" asp-route-id="@task.Id">Edit</a>
-                        <a class="btn btn-outline-danger">Delete</a>
+                        <a class="btn btn-outline-danger" 
+                           asp-controller="Tasks" onclick="return getConfirmation('Are you sure you want to delete selected task?')" 
+                           asp-action="Delete" asp-route-id="@task.Id">Delete</a>
                     </div>
                 }
 
@@ -86,6 +92,19 @@ else
     <a class="btn btn-primary create-button" asp-action="CreateVideoTask" asp-route-id="@Model.TopicId">Create video task</a>
     <a class="btn btn-primary create-button" asp-action="CreateReadingTask" asp-route-id="@Model.TopicId">Create reading task</a>
 </div>
+
+<script type="text/javascript">
+    function getConfirmation(message) {
+        var result = confirm(message);
+
+        if (result) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+</script>
 
 <style>
     h2 {

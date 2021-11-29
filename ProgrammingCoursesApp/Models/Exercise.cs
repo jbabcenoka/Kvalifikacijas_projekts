@@ -7,7 +7,7 @@ namespace ProgrammingCoursesApp.Models
 {
     public class Exercise : Task
     {
-        [Required]
+        [Required, StringLength(256, MinimumLength = 1)]
         public string QuestionText { get; set; }
         public ICollection<PossibleAnswer> PossibleAnswers { get; set; }
         

@@ -21,12 +21,12 @@
             <li class="topic-li">
                 <a class="topic" asp-controller="Tasks" asp-action="TasksForCoursesCreator" asp-route-id="@item.Id">
                     <h5 class="topic-names">@Html.DisplayFor(modelItem => item.Name)</h5>
-                    <span>@Html.DisplayFor(modelItem => item.Description)</span>
+                    <div class="decriptionBlock">@Html.DisplayFor(modelItem => item.Description)</div>
                     <i class="material-icons">@(item.IsOpened ? "visibility" : "visibility_off")</i>
                 </a>
                 <div class="edit-buttons">
                     <a class="btn btn-primary edit-delete-button" asp-action="EditTopic" asp-route-id="@item.Id">Edit</a>
-                    <a class="btn btn-danger topic-delete-button" asp-action="DeleteTopic" asp-route-id="@item.Id">Delete</a>
+                    <a class="btn btn-danger topic-delete-button" onclick="return getConfirmation('Are you sure you want to delete selected topic?')" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
                 </div>
             </li>
         }
@@ -38,7 +38,7 @@
     <a class="btn btn-primary create-topic" asp-action="CreateTopic" asp-route-id="@Model.CourseId">Create topic</a>
 </div>
 
-<script>
+<script type="text/javascript">
     function GetTopicsInOrder() {
         var list = new Array();
         var elements = document.getElementsByClassName('topic-names');
@@ -51,17 +51,29 @@
         return list;
     }
 
+    function getConfirmation(message) {
+        var result = confirm(message);
+
+        if (result) {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     $("#sortable").sortable({
-        stop: function (evt, ui) {
+        stop: function (event, ui) {
+            event.preventDefault();
             $.ajax({
                 type: "GET",
                 url: "@Url.Action(nameof(TopicsController.ChangeTopicsOrder), "Topics")",
                 contentType: "application/json; charset=utf-8",
-                traditional: true,
                 data: { "id": @Model.CourseId, "topicsInOrder": GetTopicsInOrder() },
                 dataType: "json",
-                failure: function (jqXHR) {
-                    alert("HTTP Status: " + jqXHR.status + "; Error Text: " + jqXHR.responseText);
+                failure: function (error) {
+                    alert(error);
                 }
             })
         }
@@ -75,6 +87,15 @@
         justify-content: center;
         margin-top: 50px;
         margin-bottom: 30px;
+    }
+
+    .topic {
+        margin-right: 5px;
+    }
+
+    .decriptionBlock {
+        word-wrap: break-word;
+        padding-right: 20px;
     }
 
     .material-icons {
@@ -99,7 +120,7 @@
     }
 
     .navigation-buttons {
-        margin-bottom: 100px;
+        margin-bottom: 70px;
     }
 
     .back-button {

@@ -11,7 +11,11 @@ namespace ProgrammingCoursesApp.Models
     public class Topic
     {
         public int Id { get; set; }
+
+        [Required, StringLength(256, MinimumLength = 1)]
         public string Name { get; set; }
+
+        [Required, StringLength(256, MinimumLength = 1)]
         public string Description { get; set; }
         public int DisplayOrder { get; set; }
         public bool IsOpened { get; set; }

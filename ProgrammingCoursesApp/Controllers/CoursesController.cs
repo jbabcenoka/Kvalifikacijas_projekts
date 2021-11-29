@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +8,7 @@ using ProgrammingCoursesApp.Data;
 using ProgrammingCoursesApp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNet.Identity;
+using System.Threading.Tasks;
 
 namespace ProgrammingCoursesApp.Controllers
 {
@@ -120,31 +120,41 @@ namespace ProgrammingCoursesApp.Controllers
         }
 
         [Authorize(Roles = "Admin, CourseCreator")]
-        public async Task<IActionResult> DeleteCourse(int? id)
+        public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var course = await _context.Courses
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (course == null)
-            {
-                return NotFound();
-            }
+            await DeleteCourse(id.Value, _context);
 
-            return View(course);
+            return RedirectToAction(nameof(UserCourses));
         }
 
-        [HttpPost, ActionName("Delete"), Authorize(Roles = "Admin, CourseCreator")]
+        [HttpPost, Authorize(Roles = "Admin, CourseCreator")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public static async System.Threading.Tasks.Task DeleteCourse(int id, ApplicationDbContext context)
         {
-            var course = await _context.Courses.FindAsync(id);
-            _context.Courses.Remove(course);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                var course = await context.Courses.FindAsync(id);
+
+                //dzēst kursa tēmas
+                var topics = await context.Topics.Where(x => x.CourseId == course.Id).ToListAsync();
+                
+                foreach (var topic in topics)
+                {
+                    await TopicsController.DeleteTopic(topic.Id, context);
+                }
+
+                context.Courses.Remove(course);
+                await context.SaveChangesAsync();
+            }
+            catch(Exception)
+            {
+                throw;
+            }
         }
 
         [Authorize(Roles = "Admin, CourseCreator")]
