@@ -13,21 +13,23 @@
 <div class="row row-flex">
     @foreach (var item in Model)
     {
-        <div class="col-sm-4" style="margin-top:20px">
+        <div class="col-sm-6" style="margin-top:50px">
             <div class="card">
-                <div class="card-header" style="background-color:#eaf2ff">
-                    <h5 class="card-title text-center text-dark" style="padding-top:5px; padding-bottom:5px; margin-bottom:0px;">@Html.DisplayFor(modelItem => item.Name)</h5>
+                <div class="card-header">
+                    <h5 class="card-title text-center text-dark">@Html.DisplayFor(modelItem => item.Name)</h5>
                     <i class="material-icons">@(item.IsOpened ? "visibility" : "visibility_off")</i>
-                    <a asp-controller="Topics" asp-action="Index" asp-route-id="@item.Id" class="btn btn-outline-primary preview-button" width="150px">Preview</a>
                 </div>
-                <div class="card-body bg-light">
+                <div class="card-body bg-white">
                     <p class="card-text text-justify">@Html.DisplayFor(modelItem => item.Description)</p>
                 </div>
 
                 <div class="card-footer text-center">
                     <a asp-controller="Topics" asp-action="TopicsForCreator" asp-route-id="@item.Id" class="btn btn-outline-primary" width="150px">Content</a>
                     <a asp-action="EditCourse" asp-route-id="@item.Id" class="btn btn-outline-info" width="150px">Edit description</a>
-                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger" onclick="return getConfirmation('Are you sure you want to delete selected course?')" width="150px">Delete</a>
+                    @if (!item.IsOpened)
+                    {
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger" onclick="return getConfirmation('Are you sure you want to delete selected course?')" width="150px">Delete</a>
+                    }
                 </div>
             </div>
         </div>
@@ -59,6 +61,10 @@
         margin-bottom: 30px;
     }
 
+    .card {
+        cursor: default;
+    }
+
     .material-icons {
         position: absolute;
         top: 5px;
@@ -66,15 +72,20 @@
         color: #000000;
     }
 
-    .preview-button {
-        position: absolute;
-        top: 10px;
-        right: 10px;
+    .card-title {
+        font-size: 25px;
+        padding-top: 5px;
+        padding-bottom: 5px;
+        margin-bottom: 0px;
+    }
+
+    .card:hover .card-header {
+        background-color: #c3f2f6;
     }
 
     .card-header {
-        color: #d4e9eb;
-        cursor: default;
+        font-size: 25px;
+        background-color: #e3f1f2;
     }
 
     .create-course {

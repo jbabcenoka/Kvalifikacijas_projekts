@@ -2,6 +2,9 @@
 
 @{
     ViewData["Title"] = "Course edit";
+
+    //nevar atvērt kursu, kur nav tēmas
+    var canPublishChange = Model.IsOpened || (Model.Topics != null && Model.Topics.Count != 0);
 }
 
 <h2>Course "@(Model.Name)" edit</h2>
@@ -9,12 +12,12 @@
 <hr />
 <div class="row">
     <div class="col-md-6">
-        <form asp-action="EditCourse">
+        <form asp-action="EditCourse" id="editCourseForm" onsubmit="return publishCourse(@canPublishChange.ToString().ToLower())">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             <div class="form-group">
                 <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" autocomplete="off"/>
+                <input asp-for="Name" class="form-control" autocomplete="off" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -34,6 +37,19 @@
         </form>
     </div>
 </div>
+
+<script type="text/javascript">
+    function publishCourse(canPublish) {
+        if (!canPublish)
+        {
+            alert('You can`t publish course, because it doesn`t contain any topic.');
+            return false;
+        }
+
+        return true;
+    }
+</script>
+
 <style>
     h2 {
         display: flex;
@@ -41,7 +57,6 @@
         margin-top: 50px;
         margin-bottom: 30px;
     }
-
 </style>
 
 @section Scripts {

@@ -6,33 +6,26 @@
 <h2>Course "@Model.CourseName" topics</h2>
 <hr />
 
-@if (Model.OpenedTopics == null || Model.OpenedTopics.Count == 0)
-{
-    <div class="info">This course does not contain any topic.</div>
-}
-else
-{
-    <div class="li-content">
-        <ol class="topiclist">
-            @foreach (var item in Model.OpenedTopics)
-            {
-                <li>
-                    <a class="topic" asp-controller="Tasks" asp-action="Index" asp-route-id="@item.Id">
-                        @if (User.Identity.IsAuthenticated)
-                        {
-                            string percentage = Model.UserTopicsScores[item.Id].ToString() +  "%";
-                            <div class="progress">
-                                <div class="progress-bar bg-success" role="progressbar" style="width: @percentage" aria-valuenow="@Model.UserTopicsScores[item.Id]" aria-valuemin="0" aria-valuemax="100">@Model.UserTopicsScores[item.Id]%</div>
-                            </div>
-                        }
-                        <h5>@Html.DisplayFor(modelItem => item.Name)</h5>
-                        <span>@Html.DisplayFor(modelItem => item.Description)</span>
-                    </a>
-                </li>
-            }
-        </ol>
-    </div>
-}
+<div class="li-content">
+    <ol class="topiclist">
+        @foreach (var item in Model.OpenedTopics)
+        {
+            <li>
+                <a class="topic" asp-controller="Tasks" asp-action="Index" asp-route-id="@item.Id">
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        string percentage = Model.UserTopicsScores[item.Id].ToString() +  "%";
+                        <div class="progress">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: @percentage" aria-valuenow="@Model.UserTopicsScores[item.Id]" aria-valuemin="0" aria-valuemax="100">@Model.UserTopicsScores[item.Id]%</div>
+                        </div>
+                    }
+                    <h5>@Html.DisplayFor(modelItem => item.Name)</h5>
+                    <span>@Html.DisplayFor(modelItem => item.Description)</span>
+                </a>
+            </li>
+        }
+    </ol>
+</div>
 
 <a class="btn btn-info back-button" asp-controller="Courses" asp-action="Index">Back to courses</a>
 
@@ -47,10 +40,6 @@ else
         justify-content: center;
         margin-top: 50px;
         margin-bottom: 30px;
-    }
-
-    .info {
-        padding-left: 10%;
     }
 
     .topiclist {

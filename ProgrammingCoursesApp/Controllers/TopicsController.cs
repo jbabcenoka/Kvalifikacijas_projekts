@@ -109,18 +109,18 @@ namespace ProgrammingCoursesApp.Controllers
         }
 
         [HttpGet, Authorize(Roles = "Admin, CourseCreator")]
-        public async Task<IActionResult> ChangeTopicsOrder(int? id, string[] topicsInOrder)
+        public async Task<IActionResult> ChangeTopicsOrder(int? id, List<int> topicsInOrder)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            foreach (var topicName in topicsInOrder)
+            foreach (var topicId in topicsInOrder)
             {
-                var topic = await _context.Topics.FirstOrDefaultAsync(t => t.Name == topicName);
+                var topic = await _context.Topics.FindAsync(topicId);
 
-                topic.DisplayOrder = Array.IndexOf(topicsInOrder, topicName);
+                topic.DisplayOrder = topicsInOrder.IndexOf(topicId);
 
                 _context.Topics.Update(topic);
             }
@@ -145,10 +145,13 @@ namespace ProgrammingCoursesApp.Controllers
                 return NotFound();
             }
 
-            //ja kurss nepieder kursa veidotajam - nevar pievienot tēmu
-            if (course.User.Id != User.Identity.GetUserId())
+            if (User.IsInRole("CourseCreator"))
             {
-                return NotFound();
+                //ja kurss nepieder kursa veidotajam - nevar pievienot tēmu
+                if (course.User.Id != User.Identity.GetUserId())
+                {
+                    return NotFound();
+                }
             }
 
             var topic = new Topic()
@@ -191,11 +194,13 @@ namespace ProgrammingCoursesApp.Controllers
                 return NotFound();
             }
 
-            var topic = await _context.Topics.FindAsync(id);
+            var topic = await _context.Topics.Where(x => x.Id == id).Include(x => x.User).FirstOrDefaultAsync();
+
             if (topic == null)
             {
                 return NotFound();
             }
+
             return View(topic);
         }
 
@@ -211,7 +216,6 @@ namespace ProgrammingCoursesApp.Controllers
             {
                 try
                 {
-                     
                     _context.Update(topic);
                     await _context.SaveChangesAsync();
                 }
@@ -265,7 +269,9 @@ namespace ProgrammingCoursesApp.Controllers
 
                 foreach (var block in topicBlocks)
                 {
-                    await TasksController.DeleteTask(block.Id, context);
+                    var taskId = await context.Tasks.Where(x => x.TopicBlockId == block.Id).Select(x => x.Id).FirstOrDefaultAsync();
+
+                    await TasksController.DeleteTask(taskId, context);
                 }
 
                 context.Topics.Remove(topic);

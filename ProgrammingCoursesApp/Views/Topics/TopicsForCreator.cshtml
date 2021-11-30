@@ -14,24 +14,32 @@
 
 <hr />
 
-<div class="li-content">
-    <ol class="topiclist" id="sortable">
-        @foreach (var item in Model.Topics)
-        {
-            <li class="topic-li">
-                <a class="topic" asp-controller="Tasks" asp-action="TasksForCoursesCreator" asp-route-id="@item.Id">
-                    <h5 class="topic-names">@Html.DisplayFor(modelItem => item.Name)</h5>
-                    <div class="decriptionBlock">@Html.DisplayFor(modelItem => item.Description)</div>
-                    <i class="material-icons">@(item.IsOpened ? "visibility" : "visibility_off")</i>
-                </a>
-                <div class="edit-buttons">
-                    <a class="btn btn-primary edit-delete-button" asp-action="EditTopic" asp-route-id="@item.Id">Edit</a>
-                    <a class="btn btn-danger topic-delete-button" onclick="return getConfirmation('Are you sure you want to delete selected topic?')" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-                </div>
-            </li>
-        }
-    </ol>
-</div>
+@if (Model.Topics == null || Model.Topics.Count == 0)
+{
+    <div class="info">This course doesn`t contain any topic.</div>
+}
+else
+{
+    <div class="li-content">
+        <ol class="topiclist" id="sortable">
+            @foreach (var item in Model.Topics)
+            {
+                <li class="topic-li">
+                    <a class="topic" asp-controller="Tasks" asp-action="TasksForCoursesCreator" asp-route-id="@item.Id">
+                        <div name="topic-ids">@Html.HiddenFor(modelItem => item.Id)</div>
+                        <h5 class="topic-names">@Html.DisplayFor(modelItem => item.Name)</h5>
+                        <div class="decriptionBlock">@Html.DisplayFor(modelItem => item.Description)</div>
+                        <i class="material-icons">@(item.IsOpened ? "visibility" : "visibility_off")</i>
+                    </a>
+                    <div class="edit-buttons">
+                        <a class="btn btn-primary edit-delete-button" asp-action="EditTopic" asp-route-id="@item.Id">Edit description</a>
+                        <a class="btn btn-danger topic-delete-button" onclick="return getConfirmation('Are you sure you want to delete selected topic?')" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    </div>
+                </li>
+            }
+        </ol>
+    </div>
+}
 
 <div class="navigation-buttons">
     <a class="btn btn-info back-button" asp-controller="Courses" asp-action="UserCourses">Back to courses</a>
@@ -41,11 +49,10 @@
 <script type="text/javascript">
     function GetTopicsInOrder() {
         var list = new Array();
-        var elements = document.getElementsByClassName('topic-names');
+        var elements = document.getElementsByName('item.Id');
 
         Array.prototype.forEach.call(elements, (function (item) {
-            var topicName = item.innerText;
-            list.push(topicName);
+            list.push(item.value);
         }));
 
         return list;
@@ -65,11 +72,11 @@
 
     $("#sortable").sortable({
         stop: function (event, ui) {
-            event.preventDefault();
             $.ajax({
                 type: "GET",
                 url: "@Url.Action(nameof(TopicsController.ChangeTopicsOrder), "Topics")",
                 contentType: "application/json; charset=utf-8",
+                traditional: true,
                 data: { "id": @Model.CourseId, "topicsInOrder": GetTopicsInOrder() },
                 dataType: "json",
                 failure: function (error) {
@@ -136,7 +143,12 @@
     }
 
     .edit-delete-button, .topic-delete-button {
-        width: 100px;
+        width: 140px;
+    }
+
+    .info {
+        padding-left: 5%;
+        margin-bottom: 50px;
     }
 
     .topiclist {

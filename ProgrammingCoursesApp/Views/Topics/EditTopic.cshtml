@@ -2,6 +2,9 @@
 
 @{
     ViewData["Title"] = "EditTopic";
+
+    //nevar publicēt tēmu, kur nav uzdevuma
+    var canPublishChange = Model.IsOpened || (Model.TopicBlocks != null && Model.TopicBlocks.Count != 0);
 }
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/4.5.6/tinymce.min.js"></script>
@@ -15,7 +18,7 @@
 <div class="row">
     <div class="col-md-6">
         <form asp-action="EditTopic">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div asp-validation-summary="ModelOnly" class="text-danger" onsubmit="return publishTopic(@canPublishChange.ToString().ToLower())"></div>
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="CourseId" />
             <div class="form-group">
@@ -33,7 +36,6 @@
                     <input class="form-check-input" asp-for="IsOpened" /> Publish topic
                 </label>
             </div>
-            <p class="info">Hint:  Published topic will be visible only in course preview (if course is unpublished).</p>
             <div class="form-group">
                 <a class="btn btn-info" asp-action="TopicsForCreator" asp-route-id="@Model.CourseId">Back to List</a>
                 <input type="submit" value="Save" class="btn btn-primary" />
@@ -45,6 +47,17 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
+
+<script type="text/javascript">
+    function publishTopic(canPublish) {
+        if (!canPublish) {
+            alert('You can`t publish topic, because it doesn`t contain any task.');
+            return false;
+        }
+
+        return true;
+    }
+</script>
 
 <script>
 

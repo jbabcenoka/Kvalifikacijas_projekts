@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ProgrammingCoursesApp.Data;
 using ProgrammingCoursesApp.Models;
@@ -29,9 +28,18 @@ namespace ProgrammingCoursesApp.Controllers
         [Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> UserCourses()
         {
-            var currentUserId = User.Identity.GetUserId();
+            var userCourses = new List<Course>();
 
-            var userCourses = await _context.Courses.Where(c => c.User.Id == currentUserId).ToListAsync();
+            if (User.IsInRole("CourseCreator"))
+            {
+                var currentUserId = User.Identity.GetUserId();
+
+                userCourses = await _context.Courses.Where(c => c.User.Id == currentUserId).ToListAsync();
+            }
+            else //Admin
+            {
+                userCourses = await _context.Courses.ToListAsync();
+            }
 
             return View(userCourses);
         }
@@ -72,17 +80,25 @@ namespace ProgrammingCoursesApp.Controllers
                 return NotFound();
             }
 
-            var course = await _context.Courses.Where(c => c.Id == id).Include(u => u.User).FirstOrDefaultAsync();
+            var course = await _context.Courses
+                .Where(c => c.Id == id)
+                .Include(u => u.User)
+                .Include(x => x.Topics)
+                .FirstOrDefaultAsync();
+
             if (course == null)
             {
                 return NotFound();
             }
             
-            var currentUserId = User.Identity.GetUserId();
-
-            if (course.User.Id != currentUserId)
+            if (User.IsInRole("CourseCreator"))  //kursa veidotājs var rediģēt tikai savu kursu
             {
-                return NotFound();
+                var currentUserId = User.Identity.GetUserId();
+
+                if (course.User.Id != currentUserId)
+                {
+                    return NotFound();
+                }
             }
 
             return View(course);
@@ -123,6 +139,27 @@ namespace ProgrammingCoursesApp.Controllers
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
+            {
+                return NotFound();
+            }
+
+            var course = await _context.Courses.Where(x => x.Id == id).Include(x => x.User).FirstOrDefaultAsync();
+            if (course == null)
+            {
+                return NotFound();
+            }
+
+            if (User.IsInRole("CourseCreator"))  //kursa veidotājs var dzēst tikai savu kursu
+            {
+                var currentUserId = User.Identity.GetUserId();
+
+                if (course.User.Id != currentUserId)
+                {
+                    return NotFound();
+                }
+            }
+
+            if (course.IsOpened)
             {
                 return NotFound();
             }
