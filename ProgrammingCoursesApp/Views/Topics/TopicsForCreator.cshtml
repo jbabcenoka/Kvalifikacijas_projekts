@@ -33,7 +33,7 @@ else
                     </a>
                     <div class="edit-buttons">
                         <a class="btn btn-primary edit-delete-button" asp-action="EditTopic" asp-route-id="@item.Id">Edit description</a>
-                        <a class="btn btn-danger topic-delete-button" onclick="return getConfirmation('Are you sure you want to delete selected topic?')" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                        <a class="btn btn-danger topic-delete-button" onclick="return confirm('Are you sure you want to delete selected topic?')" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
                     </div>
                 </li>
             }
@@ -56,18 +56,6 @@ else
         }));
 
         return list;
-    }
-
-    function getConfirmation(message) {
-        var result = confirm(message);
-
-        if (result) {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
     }
 
     $("#sortable").sortable({

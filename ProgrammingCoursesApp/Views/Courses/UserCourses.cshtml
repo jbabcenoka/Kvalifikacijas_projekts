@@ -28,7 +28,7 @@
                     <a asp-action="EditCourse" asp-route-id="@item.Id" class="btn btn-outline-info" width="150px">Edit description</a>
                     @if (!item.IsOpened)
                     {
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger" onclick="return getConfirmation('Are you sure you want to delete selected course?')" width="150px">Delete</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to delete selected course?')" width="150px">Delete</a>
                     }
                 </div>
             </div>
@@ -39,19 +39,6 @@
 <p class="create-course">
     <a class="btn btn-primary" asp-action="CreateCourse">Create new course</a>
 </p>
-
-<script type="text/javascript">
-    function getConfirmation(message) {
-        var result = confirm(message);
-
-        if (result) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-</script>
 
 <style>
     h2 {

@@ -24,14 +24,6 @@
         $("#tab" + currentTabId).next().tab('show');
     }
 
-    function saveAnswer(taskId, questionId) {
-        var tabId = $('.nav-tabs a.active').attr("id");
-        var targetId = $('.nav-tabs a.active').attr("data-bs-target");
-        setAsReaded(tabId, targetId);
-        $(taskId + " input:not(:checked)").attr('disabled', true);
-        $('#answer' + questionId).addClass("disabled");
-    }
-
     function setAsReaded(id, targetId) {
         if (!$('#' + id).hasClass('readed')) {
             $('#' + id).addClass('readed');
@@ -59,31 +51,38 @@
             currentTab.addClass('canImproveResult');
         }
 
-        $(target + ' div.resultBox').removeAttr('hidden');
-
-        var answerText = $('label[for=' + checkedAnswerId + ']').text();
-
-        $(target + ' div.resultBox').html('<b>Your answer:</b> <span>' + answerText + '.</span></br>');
-
-        if (isCorrect) {
-            if ($(target + ' div.resultBox').hasClass('incorrectResult')) {
-                $(target + ' div.resultBox').removeClass('incorrectResult');
-            }
-            $(target + ' div.resultBox').append('<b>Answer</b>: Your answer is correct!');
-            $(target + ' div.resultBox').addClass('correctResult');
-        }
-        else
+        if ($(target + ' button.answer').text() == 'Try again')
         {
-            $(target + ' div.resultBox').append('<b>Answer</b>: Your answer is not correct.');
-            $(target + ' div.resultBox').addClass('incorrectResult');
+            $(target + ' div.resultBox').attr('hidden', true);
+            $(target + ' input:checked').prop("checked", false);
+            $(target + ' input[type=radio]').prop('disabled', false);
+            $(target + ' button.answer').html('Answer the question');
         }
+        else //Answer the question
+        {
+            $(target + ' div.resultBox').removeAttr('hidden');
+            $(target + ' input[type=radio]:not(:checked)').prop('disabled', true);
 
-        $(target + ' button.answer').html('Try again');
+            if (isCorrect) {
+                if ($(target + ' div.resultBox').hasClass('incorrectResult')) {
+                    $(target + ' div.resultBox').removeClass('incorrectResult');
+                }
+                $(target + ' div.resultBox').html('<b>Answer</b>: Your answer is correct!');
+                $(target + ' div.resultBox').addClass('correctResult');
+            }
+            else
+            {
+                $(target + ' div.resultBox').html('<b>Answer</b>: Your answer is not correct.');
+                $(target + ' div.resultBox').addClass('incorrectResult');
+            }
 
-        var tabId = $(".nav-tabs a.active").attr("id");
-        var targetId = $(".nav-tabs a.active").attr("data-bs-target");
+            $(target + ' button.answer').html('Try again');
 
-        setAsReaded(tabId, targetId);
+            var tabId = $(".nav-tabs a.active").attr("id");
+            var targetId = $(".nav-tabs a.active").attr("data-bs-target");
+
+            setAsReaded(tabId, targetId);
+        }
     }
 </script>
 
@@ -174,7 +173,6 @@ else
                                 @if (block.SelectedAnswer != null)
                                 {
                                     <div class="resultBox @(block.SelectedAnswer == block.CorrectAnswerId ? "correctResult" : "incorrectResult")">
-                                        <span><b>Your answer</b>: @block.SelectedAnswerText</span><br />
                                         <span><b>Answer</b>: Your answer is @(block.SelectedAnswer == block.CorrectAnswerId ? "correct!" : "not correct.") </span>
                                     </div>
                                 }
@@ -187,11 +185,11 @@ else
                                     @(block.SelectedAnswer == null ? "Answer the question" : "Try again")
                                 </button>
                             </div>
-                                </div>
+                        </div>
                     }
 
                     <div class="buttons-panel">
-                        <a class="btn btn-info" asp-controller="Topics" asp-action="Index" asp-route-id="@Model.CourseId">Back to topic</a>
+                        <a class="btn btn-info" asp-controller="Topics" asp-action="Index" asp-route-id="@Model.CourseId" onclick="return confirm('Are you sure you want to return back to course topics? Your new score will not be saved!')">Back to topic</a>
 
                         <button type="submit" id="submit-tasks" class="btn btn-success">Save progress and return to topic</button>
 
