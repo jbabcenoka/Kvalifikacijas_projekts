@@ -38,7 +38,7 @@ namespace ProgrammingCoursesApp.Controllers
             }
             else //Admin
             {
-                userCourses = await _context.Courses.ToListAsync();
+                userCourses = await _context.Courses.Include(c => c.User).ToListAsync();
             }
 
             return View(userCourses);
@@ -110,6 +110,16 @@ namespace ProgrammingCoursesApp.Controllers
             if (id != course.Id)
             {
                 return NotFound();
+            }
+
+            if (User.IsInRole("CourseCreator"))  //kursa veidotājs var rediģēt tikai savu kursu
+            {
+                var currentUserId = User.Identity.GetUserId();
+
+                if (course.User.Id != currentUserId)
+                {
+                    return NotFound();
+                }
             }
 
             if (ModelState.IsValid)

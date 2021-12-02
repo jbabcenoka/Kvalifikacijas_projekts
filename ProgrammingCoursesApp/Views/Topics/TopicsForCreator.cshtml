@@ -14,7 +14,7 @@
 
 <hr />
 
-@if (Model.Topics == null || Model.Topics.Count == 0)
+@if (Model.Topics == null || !Model.Topics.Any())
 {
     <div class="info">This course doesn`t contain any topic.</div>
 }

@@ -88,7 +88,7 @@
 
 <h2>@Model.TopicName</h2>
 
-@if (Model.Blocks.Count() == 0)
+@if (Model.Blocks == null || !Model.Blocks.Any())
 {
     <div class="tab-content">
         This topic does not contain any task.

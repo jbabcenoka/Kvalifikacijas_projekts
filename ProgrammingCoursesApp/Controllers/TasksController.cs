@@ -223,7 +223,7 @@ namespace ProgrammingCoursesApp
 
             var topicBlocks = await _context.TopicBlocks.Where(t => t.TopicId == id).ToListAsync();
             
-            var maxDisplayOrder = topicBlocks.Count == 0 ? 0 : topicBlocks.Max(x => x.DisplayOrder);
+            var maxDisplayOrder = topicBlocks == null || !topicBlocks.Any() ? 0 : topicBlocks.Max(x => x.DisplayOrder);
 
             var topicBlock = new TopicBlock();
             topicBlock.Points = readTask.Points;
@@ -333,7 +333,7 @@ namespace ProgrammingCoursesApp
 
             var topicTasks = await _context.TopicBlocks.Where(t => t.TopicId == id).ToListAsync();
 
-            topicBlock.DisplayOrder = topicTasks.Count == 0 ? 0 : topicBlock.DisplayOrder = topicTasks.Max(d => d.DisplayOrder) + 1;
+            topicBlock.DisplayOrder = topicTasks == null || !topicTasks.Any() ? 0 : topicBlock.DisplayOrder = topicTasks.Max(d => d.DisplayOrder) + 1;
             
             topicBlock.Points = exercise.Points;
             topicBlock.Topic = topic;
@@ -641,11 +641,6 @@ namespace ProgrammingCoursesApp
             {
                 throw;
             }
-        }
-        
-        private bool TopicBlockExists(int id)
-        {
-            return _context.TopicBlocks.Any(e => e.Id == id);
         }
     }
 }
