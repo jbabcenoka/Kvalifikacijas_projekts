@@ -16,7 +16,8 @@
                     {
                         string percentage = Model.UserTopicsScores[item.Id].ToString() +  "%";
                         <div class="progress">
-                            <div class="progress-bar bg-success" role="progressbar" style="width: @percentage" aria-valuenow="@Model.UserTopicsScores[item.Id]" aria-valuemin="0" aria-valuemax="100">@Model.UserTopicsScores[item.Id]%</div>
+                            <div class="progress-bar bg-success" role="progressbar" style="width: @percentage" aria-valuenow="@Model.UserTopicsScores[item.Id]" 
+                                 aria-valuemin="0" aria-valuemax="100">@Model.UserTopicsScores[item.Id]%</div>
                         </div>
                     }
                     <h5>@Html.DisplayFor(modelItem => item.Name)</h5>

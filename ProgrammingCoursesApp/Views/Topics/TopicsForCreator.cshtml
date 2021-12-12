@@ -31,9 +31,17 @@ else
                         <div class="decriptionBlock">@Html.DisplayFor(modelItem => item.Description)</div>
                         <i class="material-icons">@(item.IsOpened ? "visibility" : "visibility_off")</i>
                     </a>
+                    <br />
                     <div class="edit-buttons">
                         <a class="btn btn-primary edit-delete-button" asp-action="EditTopic" asp-route-id="@item.Id">Edit description</a>
-                        <a class="btn btn-danger topic-delete-button" onclick="return confirm('Are you sure you want to delete selected topic?')" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                        @if (!item.IsOpened)
+                        { 
+                            <a class="btn btn-danger topic-delete-button" 
+                               onclick="return confirm('Are you sure you want to delete selected topic?')" 
+                               asp-action="Delete" asp-route-id="@item.Id">
+                                Delete
+                            </a>
+                        }
                     </div>
                 </li>
             }
@@ -85,7 +93,7 @@ else
     }
 
     .topic {
-        margin-right: 5px;
+        margin-right: 5%;
     }
 
     .decriptionBlock {
@@ -111,7 +119,8 @@ else
     }
 
     .edit-buttons {
-        text-align: center;
+        width: 10%;
+        align-self: center;
     }
 
     .navigation-buttons {
@@ -148,7 +157,7 @@ else
 
 
         .topiclist li {
-            margin-bottom: 25px;
+            margin-bottom: 40px;
             display: flex;
             justify-content: start;
         }
@@ -159,13 +168,12 @@ else
 
         .topiclist .topic {
             position: relative;
-            width: 90%;
+            width: 80%;
             display: block;
             padding: .8em .4em 0.7em 3em;
             background: #eef3f2;
             color: #444;
             border-radius: .3em;
-            margin-bottom: 1em;
             text-decoration: none;
         }
 

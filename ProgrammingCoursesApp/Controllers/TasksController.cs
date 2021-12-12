@@ -22,6 +22,7 @@ namespace ProgrammingCoursesApp
             _context = context;
         }
 
+        //Uzdevumu saraksta un lietotāja rezultātu attēlošana
         [Authorize]
         public async Task<IActionResult> Index(int? id)
         {
@@ -30,9 +31,27 @@ namespace ProgrammingCoursesApp
                 return NotFound();
             }
             
+            //atrast uzdevuma tēmu
             var topic = await _context.Topics.FirstOrDefaultAsync(t => t.Id == id);
 
+            //ja tēma neeksistē datubāzē - kļūda
             if (topic == null)
+            {
+                return NotFound();
+            }
+
+            //ja kursa tēma nav publicēta - kļūda
+            if (!topic.IsOpened)
+            {
+                return NotFound();
+            }
+
+            //ja kurss nav publicēts - kļūda
+            var isOpenedCourse = await _context.Courses
+                .Where(x => x.Id == topic.CourseId)
+                .Select(x => x.IsOpened)
+                .FirstOrDefaultAsync();
+            if (!isOpenedCourse)
             {
                 return NotFound();
             }
@@ -151,6 +170,7 @@ namespace ProgrammingCoursesApp
             return View("TasksForCoursesCreator", vm);
         }
 
+        //Jautājuma un tā atbilžu variantu izveidošana, identifikators UM-03
         [Authorize(Roles = "Admin, CourseCreator")]
         public IActionResult CreateExercise(int? id)
         {
@@ -323,8 +343,9 @@ namespace ProgrammingCoursesApp
             var topic = await _context.Topics
                                 .Where(t => t.Id == id)
                                 .FirstOrDefaultAsync();
-
-            if (topic == null) //tēma neeksistē
+            
+            //tēma neeksistē
+            if (topic == null)
             {
                 return NotFound();
             }
@@ -452,7 +473,7 @@ namespace ProgrammingCoursesApp
             var topicBlock = await _context.TopicBlocks
                                 .Where(t => t.Id == readTask.TopicBlockId)
                                 .FirstOrDefaultAsync();
-
+            
             if (topicBlock == null)
             {
                 return NotFound();
@@ -620,6 +641,7 @@ namespace ProgrammingCoursesApp
         {
             try
             {
+                //mēģina atrast uzdevumu
                 var task = await context.Tasks.FindAsync(id);
 
                 //dzest uzdevuma rezultātus

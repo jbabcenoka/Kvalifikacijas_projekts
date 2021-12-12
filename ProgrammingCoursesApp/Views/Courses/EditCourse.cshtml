@@ -3,8 +3,9 @@
 @{
     ViewData["Title"] = "Course edit";
 
-    //nevar atvērt kursu, kur nav tēmas
-    var canPublishChange = Model.IsOpened || (Model.Topics != null && Model.Topics.Count != 0);
+    //nevar atvērt kursu, kur nav atvērtas tēmas
+    var openedTopics = Model.Topics != null ? Model.Topics.Where(x => x.IsOpened).ToList() : null;
+    var cantPublish = !Model.IsOpened && (openedTopics == null || !openedTopics.Any());
 }
 
 <h2>Course "@(Model.Name)" edit</h2>
@@ -12,7 +13,7 @@
 <hr />
 <div class="row">
     <div class="col-md-6">
-        <form asp-action="EditCourse" id="editCourseForm" onsubmit="return publishCourse(@canPublishChange.ToString().ToLower())">
+        <form asp-action="EditCourse" id="editCourseForm" onsubmit="return publishCourse(@cantPublish.ToString().ToLower())">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             <div class="form-group">
@@ -39,11 +40,19 @@
 </div>
 
 <script type="text/javascript">
-    function publishCourse(canPublish) {
-        if (!canPublish)
+    function publishCourse(cantPublish) {
+        if (cantPublish)
         {
-            alert('You can`t publish course, because it doesn`t contain any topic.');
-            return false;
+            let unpublishCourse = document.getElementById("IsOpened").checked;
+
+            if (unpublishCourse) { //lietotājs atzīmēja publicēt kursu
+                alert('You can`t publish course, because it doesn`t contain any opened topic.');
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
 
         return true;

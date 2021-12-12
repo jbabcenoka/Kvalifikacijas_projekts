@@ -35,6 +35,12 @@ namespace ProgrammingCoursesApp.Controllers
                 return NotFound();
             }
 
+            //kurss ir aizvērts - kļūda
+            if (!course.IsOpened)
+            {
+                return NotFound();
+            }
+
             var openedTopics = await _context.Topics
                                 .Where(t => t.CourseId == id && t.IsOpened)
                                 .OrderBy(t => t.DisplayOrder)
@@ -116,16 +122,47 @@ namespace ProgrammingCoursesApp.Controllers
                 return NotFound();
             }
 
-            foreach (var topicId in topicsInOrder)
+            //ja kurss nesatur uzdevumu - kļūda
+            if (topicsInOrder == null || !topicsInOrder.Any())
             {
-                var topic = await _context.Topics.FindAsync(topicId);
-
-                topic.DisplayOrder = topicsInOrder.IndexOf(topicId);
-
-                _context.Topics.Update(topic);
+                return NotFound();
             }
 
-            await _context.SaveChangesAsync();
+            //atrodam pirmo tēmu, lai uzzinātu kursu
+            var firstTopicCourseId = await _context.Topics.Where(x => x.Id == topicsInOrder.First()).Select(x => x.CourseId).FirstOrDefaultAsync();
+            
+            //atrodam kursa autoru
+            var courseUserId = await _context.Courses.Where(x => x.Id == firstTopicCourseId).Select(x => x.User.Id).FirstOrDefaultAsync();
+
+            //kursa veidotājs var rediģēt tikai savu kursu
+            if (User.IsInRole("CourseCreator"))
+            {
+                var currentUserId = User.Identity.GetUserId();
+
+                if (courseUserId != currentUserId)
+                {
+                    return NotFound();
+                }
+            }
+
+            try
+            {
+                //mainām katrai tēmai kārtību
+                foreach (var topicId in topicsInOrder)
+                {
+                    var topic = await _context.Topics.FindAsync(topicId);
+
+                    topic.DisplayOrder = topicsInOrder.IndexOf(topicId);
+
+                    _context.Topics.Update(topic);
+                }
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                throw;
+            }
+
             return Ok();
         }
 
@@ -194,28 +231,74 @@ namespace ProgrammingCoursesApp.Controllers
                 return NotFound();
             }
 
-            var topic = await _context.Topics.Where(x => x.Id == id).Include(x => x.User).FirstOrDefaultAsync();
+            var topic = await _context.Topics.Where(x => x.Id == id).Include(x => x.Course).Include(x => x.User).Include(x=> x.TopicBlocks).FirstOrDefaultAsync();
 
             if (topic == null)
             {
                 return NotFound();
             }
 
+            if (User.IsInRole("CourseCreator"))  //kursa veidotājs var rediģēt tikai savu kursu - kursu tēmas
+            {
+                var currentUserId = User.Identity.GetUserId();
+
+                if (topic.User.Id != currentUserId)
+                {
+                    return NotFound();
+                }
+            }
+
+            ViewBag.IsLastOpenedTopic = false;
+
+            //ja tēma ir pēdējā atvērta tēma
+            if (topic.Course.IsOpened && topic.IsOpened)
+            {
+                var openedTopicsCount = await _context.Topics.Where(x => x.CourseId == topic.Course.Id && x.IsOpened).CountAsync();
+                
+                if (openedTopicsCount == 1)  //ir vienīga
+                {
+                    topic.IsLastOpenedTopic = true;
+                }
+            }
+
             return View(topic);
         }
 
         [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "Admin, CourseCreator")]
-        public async Task<IActionResult> EditTopic(int id, [Bind("Id,CourseId,Name,Description,IsOpened")] Topic topic)
+        public async Task<IActionResult> EditTopic(int id, [Bind("Id,CourseId,Name,Description,IsOpened,IsLastOpenedTopic")] Topic topic)
         {
             if (id != topic.Id)
             {
                 return NotFound();
             }
 
+            var course = await _context.Courses.Where(x => x.Id == topic.CourseId).Include(x => x.User).FirstOrDefaultAsync();
+
+            if (course == null)
+            {
+                return NotFound();
+            }
+
+            if (User.IsInRole("CourseCreator"))  //kursa veidotājs var rediģēt tikai savu kursu - kursu tēmas
+            {
+                var currentUserId = User.Identity.GetUserId();
+
+                if (course.User.Id != currentUserId)
+                {
+                    return NotFound();
+                }
+            }
+
             if (ModelState.IsValid)
             {
                 try
                 {
+                    if (topic.IsLastOpenedTopic)
+                    {
+                        course.IsOpened = false;
+                        _context.Update(course);
+                    }
+
                     _context.Update(topic);
                     await _context.SaveChangesAsync();
                 }
@@ -247,6 +330,11 @@ namespace ProgrammingCoursesApp.Controllers
             var topic = await _context.Topics.FindAsync(id);
 
             if (topic == null) //tēma neeksistē
+            {
+                return NotFound();
+            }
+
+            if (topic.IsOpened)
             {
                 return NotFound();
             }

@@ -12,7 +12,7 @@ namespace ProgrammingCoursesApp.Models
         public int? TopicBlockId { get; set; }
         public TopicBlock TopicBlock { get; set; }
 
-        [NotMapped, Required, Range(0, 100, ErrorMessage = "The field {0} must be greater than {1}.")]
+        [NotMapped, Required, Range(1, 100, ErrorMessage = "The field {0} must be greater than {1} and less than {2}.")]
         public int Points { get; set; }
     }
 }

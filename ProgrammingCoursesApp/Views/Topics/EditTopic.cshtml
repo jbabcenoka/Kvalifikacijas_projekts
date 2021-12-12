@@ -3,13 +3,13 @@
 @{
     ViewData["Title"] = "EditTopic";
 
-    //nevar publicēt tēmu, kur nav uzdevuma
-    var canPublishChange = Model.IsOpened || (Model.TopicBlocks != null && Model.TopicBlocks.Count != 0);
+    //nevar publicēt tēmu, kura nesatur uzdevumus
+    var canPublishChange = Model.IsOpened || (Model.TopicBlocks != null && Model.TopicBlocks.Any());
 }
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/4.5.6/tinymce.min.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-<script src="http://cdnjs.cloudflare.com/ajax/libs/tinymce/4.5.6/jquery.tinymce.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/4.5.6/jquery.tinymce.min.js"></script>
 
 <h2>Edit topic "@Model.Name"</h2>
 
@@ -17,10 +17,11 @@
 <hr />
 <div class="row">
     <div class="col-md-6">
-        <form asp-action="EditTopic">
-            <div asp-validation-summary="ModelOnly" class="text-danger" onsubmit="return publishTopic(@canPublishChange.ToString().ToLower())"></div>
+        <form asp-action="EditTopic" onsubmit="return publishTopic(@canPublishChange.ToString().ToLower())">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="CourseId" />
+            <input type="hidden" asp-for="IsLastOpenedTopic" />
             <div class="form-group">
                 <label asp-for="Name" class="control-label"></label>
                 <input asp-for="Name" class="form-control" />
@@ -53,6 +54,12 @@
         if (!canPublish) {
             alert('You can`t publish topic, because it doesn`t contain any task.');
             return false;
+        }
+
+        let unpublishTopic = document.getElementById("IsOpened").checked;
+
+        if (unpublishTopic == false && @Model.IsLastOpenedTopic.ToString().ToLower()) {
+            return confirm('Are you sure you want to unpublish last published topic? Course will be automatically unpublished, because course will not contain opened topics.');
         }
 
         return true;

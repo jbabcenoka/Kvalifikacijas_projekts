@@ -1,4 +1,5 @@
 ﻿@model IEnumerable<Microsoft.AspNetCore.Identity.IdentityUser>
+@using ProgrammingCoursesApp.Controllers
 @{
     ViewData["Title"] = "Users administration";
 }
@@ -14,7 +15,7 @@
             <th>User name</th>
             <th>Email</th>
             <th>Phone number</th>
-            <th>Edit profile</th>
+            <th>Edit role</th>
             <th>Delete profile</th>
         </tr>
     </thead>
@@ -29,7 +30,9 @@
                     <a class="btn btn-primary" asp-action="Edit" asp-route-id="@user.Id">Edit</a>
                 </td>
                 <td>
-                    <a class="btn btn-danger" asp-action="Delete" asp-route-id="@user.Id" onclick="return getConfirmation('Are you sure you want to delete selected user?')">Delete</a>
+                    <a class="btn btn-danger delete-button" onclick="return deleteUser('@user.Id','@user.Email')">
+                        Delete
+                    </a>
                 </td>
             </tr>
         }
@@ -37,21 +40,58 @@
 </table>
 
 <script>
-    function getConfirmation(message) {
-        var result = confirm(message);
-
-        if (result) {
-            return true;
+    function deleteUser(userId, userEmail)
+    {
+        if (confirm('Are you sure you want to delete selected user? '
+            + 'User results and all user courses will be deleted if user is courses creator or administrator.')) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action(nameof(AdminController.DeleteUser), "Admin")',
+                data: JSON.stringify(userId),
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                success: function (result) {
+                    if (result.isDeleted)
+                    {
+                        alert("User successfully deleted");
+                        removeUserFromTable(userEmail);
+                    }
+                    else
+                    {
+                        alert("Failed to delete user");
+                    }
+                }
+            });
         }
-        else {
+        else
+        {
             return false;
+        }
+    }
+
+    function removeUserFromTable(userEmail) {
+        var rows = document.getElementById("users-table").getElementsByTagName("tr");
+        var cell;
+
+        for (var i = 0; i < rows.length; i++) {
+            cell = rows[i].getElementsByTagName("td")[1];
+
+            if (cell) {
+                value = cell.innerText || cell.textContent;
+
+                if (value.normalize() === userEmail.normalize())
+                {
+                    document.getElementById("users-table").deleteRow(i);
+                    return;
+                }
+            }
         }
     }
 
     function searchUser(inputId)
     {
         var filterInput = document.getElementById(inputId).value.toUpperCase();
-        var row = document.getElementById("users-table").getElementsByTagName("tr");
+        var rows = document.getElementById("users-table").getElementsByTagName("tr");
         var cell, column;
 
         if (inputId == 'userNameInput')
@@ -63,9 +103,9 @@
             column = 1;
         }
 
-        for (var i = 0; i < row.length; i++)
+        for (var i = 0; i < rows.length; i++)
         {
-            cell = row[i].getElementsByTagName("td")[column];
+            cell = rows[i].getElementsByTagName("td")[column];
 
             if (cell)
             {
@@ -73,11 +113,11 @@
 
                 if (value.toUpperCase().indexOf(filterInput) > -1)
                 {
-                    row[i].style.display = "";
+                    rows[i].style.display = "";
                 }
                 else
                 {
-                    row[i].style.display = "none";
+                    rows[i].style.display = "none";
                 }
             }
         }
@@ -117,7 +157,7 @@
         padding: 20px 40px;
     }
 
-    tr:nth-child(even){
+    tr:nth-child(even) {
         background-color: #e3f1f2;
     }
 
@@ -130,4 +170,7 @@
         margin-right: 10px;
     }
 
+    delete-button {
+        color: #ffffff;
+    }
 </style>

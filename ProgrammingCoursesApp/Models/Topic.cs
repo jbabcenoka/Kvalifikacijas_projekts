@@ -23,5 +23,8 @@ namespace ProgrammingCoursesApp.Models
         public Course Course { get; set; }
         public IdentityUser User { get; set; }
         public ICollection<TopicBlock> TopicBlocks { get; set; }
+
+        [NotMapped]
+        public bool IsLastOpenedTopic { get; set; }
     }
 }

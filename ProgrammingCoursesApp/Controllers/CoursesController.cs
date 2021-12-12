@@ -112,11 +112,23 @@ namespace ProgrammingCoursesApp.Controllers
                 return NotFound();
             }
 
+            //ja kursu mēģina atvērt un kurss nesatur tēmas - kļūda.
+            var courseTopics = await _context.Topics.Where(x => x.CourseId == course.Id).ToListAsync();
+
+            if (course.IsOpened && (courseTopics == null || !courseTopics.Any()))
+            {
+                return NotFound();
+            }
+
             if (User.IsInRole("CourseCreator"))  //kursa veidotājs var rediģēt tikai savu kursu
             {
                 var currentUserId = User.Identity.GetUserId();
+                var courseCreator = await _context.Courses
+                    .Where(x => x.Id == course.Id)
+                    .Select(x => x.User.Id)
+                    .FirstOrDefaultAsync();
 
-                if (course.User.Id != currentUserId)
+                if (courseCreator != currentUserId)
                 {
                     return NotFound();
                 }
