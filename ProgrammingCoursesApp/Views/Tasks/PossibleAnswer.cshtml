@@ -1,0 +1,8 @@
+﻿@model ProgrammingCoursesApp.Models.PossibleAnswer
+<tr class="form-group">
+    <td class="questionBox">
+        <input type="hidden" asp-for="Id" />
+        @Html.TextAreaFor(m => Model.Text, new { @class = "form-control", @rows = "2", @autocomplete = "off" })
+        @Html.ValidationMessageFor(m => Model.Text, "", new { @class = "text-danger" })
+    </td>
+</tr>

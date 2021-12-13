@@ -181,6 +181,7 @@ namespace ProgrammingCoursesApp.Controllers
                 }
             }
 
+            //dzēst var tikai nepublicēto kursu
             if (course.IsOpened)
             {
                 return NotFound();

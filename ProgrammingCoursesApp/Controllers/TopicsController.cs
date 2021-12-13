@@ -231,7 +231,12 @@ namespace ProgrammingCoursesApp.Controllers
                 return NotFound();
             }
 
-            var topic = await _context.Topics.Where(x => x.Id == id).Include(x => x.Course).Include(x => x.User).Include(x=> x.TopicBlocks).FirstOrDefaultAsync();
+            var topic = await _context.Topics
+                .Where(x => x.Id == id)
+                .Include(x => x.Course)
+                .Include(x => x.Course.User)
+                .Include(x=> x.TopicBlocks)
+                .FirstOrDefaultAsync();
 
             if (topic == null)
             {
@@ -242,7 +247,7 @@ namespace ProgrammingCoursesApp.Controllers
             {
                 var currentUserId = User.Identity.GetUserId();
 
-                if (topic.User.Id != currentUserId)
+                if (topic.Course.User.Id != currentUserId)
                 {
                     return NotFound();
                 }

@@ -404,14 +404,15 @@ namespace ProgrammingCoursesApp
             return RedirectToAction(nameof(TasksForCoursesCreator), new { id = id });
         }
 
-        [Authorize(Roles = "Admin, CourseCreator")]
-        public ActionResult AddPossibleAnswer()
+        [HttpPost, Authorize(Roles = "Admin, CourseCreator")]
+        public ActionResult AddPossibleAnswer(int index)
         {
-            var vm = new CreateOrEditTaskVM();
-
-            return PartialView("AddPossibleAnswerPartialView", vm);
+            var newAnswer = new PossibleAnswer();
+            // http://source.entelect.co.za/dynamically-add-and-remove-rows-for-a-table-in-mvc
+            ViewData.TemplateInfo.HtmlFieldPrefix = string.Format("PossibleAnswers[{0}]", index);
+            
+            return PartialView("PossibleAnswer", newAnswer);
         }
-
 
         [Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> Edit(int? id)
@@ -474,6 +475,7 @@ namespace ProgrammingCoursesApp
                                 .Where(t => t.Id == readTask.TopicBlockId)
                                 .FirstOrDefaultAsync();
             
+            //ja tēmas bloks nav atrasts - kļūda
             if (topicBlock == null)
             {
                 return NotFound();
@@ -483,6 +485,20 @@ namespace ProgrammingCoursesApp
             {
                 try
                 {
+                    //ja lietotājs maina punktus par uzdevumu
+                    if (topicBlock.Points != readTask.Points)
+                    {
+                        //piešķirt atjaunotos punktus lietotājiem
+                        var usersResults = await _context.Results.Where(x => x.TaskId == readTask.Id).ToListAsync();
+
+                        foreach(var userResult in usersResults)
+                        {
+                            //par lasāmo uzdevumu vienmēr ir maksimums (lietotājs ir lasījis materiālu)
+                            userResult.Points = readTask.Points;
+                            _context.Results.Update(userResult);
+                        }
+                    }
+
                     topicBlock.Points = readTask.Points;
                     _context.TopicBlocks.Update(topicBlock);
                     _context.Tasks.Update(readTask);
@@ -526,6 +542,20 @@ namespace ProgrammingCoursesApp
             {
                 try
                 {
+                    //ja lietotājs maina punktus par uzdevumu
+                    if (topicBlock.Points != videoTask.Points)
+                    {
+                        //piešķirt atjaunotos punktus lietotājiem
+                        var usersResults = await _context.Results.Where(x => x.TaskId == videoTask.Id).ToListAsync();
+
+                        foreach (var userResult in usersResults)
+                        {
+                            //par video uzdevumu vienmēr ir maksimum (lietotājs ir skatījies video)
+                            userResult.Points = videoTask.Points;
+                            _context.Results.Update(userResult);
+                        }
+                    }
+
                     topicBlock.Points = videoTask.Points;
                     _context.TopicBlocks.Update(topicBlock);
                     _context.Tasks.Update(videoTask);

@@ -13,49 +13,21 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
+<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/mvc/5.2.3/jquery.validate.unobtrusive.min.js"></script>
 
 <script type="text/javascript">
     var i = @possibleAnswerCount;
 
-    function addPossibleItemInput(event) {
-        event.preventDefault();
+    function addCorrectAnswerRadioInput() {
         var table = document.getElementById("possibleAnswerItems");
+        //pēdējā tabulas rinda
+        var row = table.rows[table.rows.length - 1];
 
-        var row = table.insertRow(-1);  //ja -1, tad pievienos tabulas beigās
-
-        if (i >= 2) {
-            $('#deleteRowButton').removeAttr('hidden');
-        }
-
+        //lauka pievienošana - lauks "vai ir pareizi"
         let td = document.createElement("td");
         let div = document.createElement("div");
         div.setAttribute("class", "form-group");
-
-        let field = document.createElement("textarea");
-        field.setAttribute("class", "form-control valid");
-        field.setAttribute("name", "PossibleAnswers[" + i + "].Text");
-        field.setAttribute("id", "PossibleAnswers_" + i + "__Text");
-        field.setAttribute("data-val-required", "The Text field is required.");
-        field.setAttribute("aria-describedby", "PossibleAnswers_" + i +"__Text-error");
-        field.setAttribute("autocomplete", "off");
-        field.setAttribute("rows", "2");
-        field.setAttribute("data-val", "true");
-
-        //kļūdas paziņojums laukam
-        let errorForField = document.createElement("span");
-        errorForField.setAttribute("class", "text-danger field-validation-valid");
-        errorForField.setAttribute("data-valmsg-for", "PossibleAnswers["+i+"].Text");
-        errorForField.setAttribute("data-valmsg-replace", "true");
-
-        div.appendChild(field);
-        div.appendChild(errorForField);
-        td.appendChild(div);
-        row.appendChild(td);
-
-        //lauka pievienošana - lauks "vai ir pareizi"
-        let td2 = document.createElement("td");
-        let div2 = document.createElement("div");
-        div2.setAttribute("class", "form-group");
 
         let isCorrectField = document.createElement("input");
         isCorrectField.setAttribute("type", "radio");
@@ -70,18 +42,44 @@
         errorForCorrectField.setAttribute("data-valmsg-for", "Exercise.AnswerId");
         errorForCorrectField.setAttribute("data-valmsg-replace", "true");
 
-        div2.appendChild(isCorrectField);
-        div2.appendChild(errorForCorrectField);
-        td2.appendChild(div2);
-        row.appendChild(td2);
+        div.appendChild(isCorrectField);
+        div.appendChild(errorForCorrectField);
+        td.appendChild(div);
+        row.appendChild(td);
+    }
+
+    function addPossibleItemInput(event) {
+        event.preventDefault();
+        var tableBody = $("table#possibleAnswerItems tbody");
+
+        if (i >= 2) {
+            $('#deleteRowButton').removeAttr('hidden');
+        }
+
+        var nextIndex = $("table#possibleAnswerItems tbody tr").length;
+        $.validator.unobtrusive.parse($('form'));  //added
+        $.ajax({
+            url: '@Url.Action(nameof(TasksController.AddPossibleAnswer), "Tasks")',
+            type: 'POST',
+            async: false,
+            data: { index: nextIndex },
+            success: function (results) {
+                tableBody.append(results);
+                $("form").removeData("validator");
+                $("form").removeData("unobtrusiveValidation");
+                $.validator.unobtrusive.parse("form");
+                addCorrectAnswerRadioInput();
+            }
+        });
 
         i++;
     }
 
+    //dzēst atbildes variantu
     function removePossibleItemInput(event) {
         event.preventDefault();
         var table = document.getElementById("possibleAnswerItems");
-            table.deleteRow(-1);
+        table.deleteRow(-1); //dzēst pēdējo rindu tabulā
 
         i--;
 
@@ -132,7 +130,8 @@
                                        id="answer@(itemIndex)"
                                        asp-for="Exercise.AnswerId"
                                        value="@itemIndex"
-                                       class="form-control isCorrectBox" />
+                                       class="form-control isCorrectBox" 
+                                       checked="@(Model.PossibleAnswers != null && Model.PossibleAnswers[itemIndex].IsCorrect ? true : false)"/>
                                 <span asp-validation-for="Exercise.AnswerId" class="text-danger"></span>
                             </div>
                         </td>
@@ -142,7 +141,7 @@
 
             <div class="form-group">
                 <button class="btn btn-primary" onclick="addPossibleItemInput(event)">Add possible answer</button>
-                <button class="btn btn-danger" id="deleteRowButton" onclick="removePossibleItemInput(event)" @(possibleAnswerCount <= 2 ? "hidden" : null) >Remove possible answer</button>
+                <button class="btn btn-danger" id="deleteRowButton" onclick="removePossibleItemInput(event)" @(possibleAnswerCount <= 2 ? "hidden" : null)>Remove possible answer</button>
             </div>
             <div class="form-group">
                 <label asp-for="Exercise.Points" class="control-label"></label>
