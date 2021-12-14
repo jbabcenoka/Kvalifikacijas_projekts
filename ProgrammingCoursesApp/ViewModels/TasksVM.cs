@@ -19,7 +19,6 @@ namespace ProgrammingCoursesApp.ViewModels
         public bool IsViewed { get; set; }
         public List<PossibleAnswer> PossibleAnswers { get; set; }
         public int? SelectedAnswer { get; set; }
-        public string SelectedAnswerText { get; set; }
         public PossibleAnswer Answer { get; set; }
         public int? CorrectAnswerId { get; set; }
     }
