@@ -32,6 +32,11 @@ namespace ProgrammingCoursesApp
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+            services.Configure<IdentityOptions>(opts =>
+            {
+                opts.SignIn.RequireConfirmedEmail = false;
+            });
+
             services.AddControllersWithViews();
         }
 

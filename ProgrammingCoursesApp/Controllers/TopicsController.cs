@@ -207,9 +207,13 @@ namespace ProgrammingCoursesApp.Controllers
             {
                 if (ModelState.IsValid)
                 {
+                    //pēc noklusējuma izveidotā tēma nav publicēta
                     topic.IsOpened = false;
-                    topic.User = await _context.Users.FirstOrDefaultAsync(u => u.Id == User.Identity.GetUserId());
 
+                    //kārtas numurs tiek piešķirts pēdējais
+                    var topics = await _context.Topics.Where(t => t.CourseId == topic.CourseId).ToListAsync();
+                    topic.DisplayOrder = topics == null || !topics.Any() ? 0 : topics.Max(d => d.DisplayOrder) + 1;
+                    
                     _context.Topics.Add(topic);
                     await _context.SaveChangesAsync();
                     return RedirectToAction("TopicsForCreator", new { id = topic.CourseId });

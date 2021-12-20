@@ -189,9 +189,9 @@ else
                     }
 
                     <div class="buttons-panel">
-                        <a class="btn btn-info" asp-controller="Topics" asp-action="Index" asp-route-id="@Model.CourseId" onclick="return confirm('Are you sure you want to return back to course topics? Your new score will not be saved!')">Back to topic</a>
+                        <a class="btn btn-info" asp-controller="Topics" asp-action="Index" asp-route-id="@Model.CourseId" onclick="return confirm('Are you sure you want to return back to course topics? Your new score will not be saved!')">Back to topics</a>
 
-                        <button type="submit" id="submit-tasks" class="btn btn-success">Save progress and return to topic</button>
+                        <button type="submit" id="submit-tasks" class="btn btn-success">Save progress</button>
 
                         @if (i < Model.Blocks.Count - 1)
                         {

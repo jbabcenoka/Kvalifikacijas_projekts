@@ -21,7 +21,6 @@ namespace ProgrammingCoursesApp.Models
         public bool IsOpened { get; set; }
         public int CourseId { get; set; }
         public Course Course { get; set; }
-        public IdentityUser User { get; set; }
         public ICollection<TopicBlock> TopicBlocks { get; set; }
 
         [NotMapped]
