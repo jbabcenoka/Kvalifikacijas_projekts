@@ -83,7 +83,7 @@ namespace ProgrammingCoursesApp.Controllers
             return View("Topics", vm);
         }
 
-        [Authorize(Roles = "Admin, CourseCreator")]
+        [Authorize(Roles = "Admin,CourseCreator")]
         public async Task<IActionResult> TopicsForCreator(int? id)
         {
             if (id == null)
@@ -114,7 +114,7 @@ namespace ProgrammingCoursesApp.Controllers
             return View("TopicsForCreator", vm);
         }
 
-        [HttpGet, Authorize(Roles = "Admin, CourseCreator")]
+        [HttpGet, Authorize(Roles = "Admin,CourseCreator")]
         public async Task<IActionResult> ChangeTopicsOrder(int? id, List<int> topicsInOrder)
         {
             if (id == null)
@@ -212,7 +212,7 @@ namespace ProgrammingCoursesApp.Controllers
 
                     //kārtas numurs tiek piešķirts pēdējais
                     var topics = await _context.Topics.Where(t => t.CourseId == topic.CourseId).ToListAsync();
-                    topic.DisplayOrder = topics == null || !topics.Any() ? 0 : topics.Max(d => d.DisplayOrder) + 1;
+                    topic.DisplayOrder = topics != null && topics.Any() ? topics.Max(d => d.DisplayOrder) + 1 : 0;
                     
                     _context.Topics.Add(topic);
                     await _context.SaveChangesAsync();
@@ -274,7 +274,7 @@ namespace ProgrammingCoursesApp.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "Admin, CourseCreator")]
-        public async Task<IActionResult> EditTopic(int id, [Bind("Id,CourseId,Name,Description,IsOpened,IsLastOpenedTopic")] Topic topic)
+        public async Task<IActionResult> EditTopic(int id, [Bind("Id,CourseId,Name,Description,IsOpened,DisplayOrder,IsLastOpenedTopic")] Topic topic)
         {
             if (id != topic.Id)
             {

@@ -196,13 +196,37 @@ namespace ProgrammingCoursesApp
             return View("TasksForCoursesCreator", vm);
         }
 
-        //Skata atvēršana - UM-03
+        //Skata atvēršana - jautājuma izveidošanai UM-03
         [Authorize(Roles = "Admin, CourseCreator")]
-        public IActionResult CreateExercise(int? id)
+        public async Task<IActionResult> CreateExercise(int? id)
         {
+            //ja tēma nav noradīta
             if (id == null)
             {
                 return NotFound();
+            }
+
+            //atrast tēmu
+            var topic = await _context.Topics
+                                .Where(t => t.Id == id)
+                                .Include(t => t.Course.User)
+                                .FirstOrDefaultAsync();
+
+            //tēma neeksistē - kļūda
+            if (topic == null)
+            {
+                return NotFound();
+            }
+
+            //Ja uzdevuma izveidošanai mēģina piekļūt tas, kurš nav kursa autors vai administrators - kļūda
+            if (User.IsInRole("CourseCreator"))
+            {
+                var currentUserId = User.Identity.GetUserId();
+
+                if (topic.Course.User.Id != currentUserId)
+                {
+                    return NotFound();
+                }
             }
 
             var vm = new CreateOrEditTaskVM
@@ -307,13 +331,37 @@ namespace ProgrammingCoursesApp
             return RedirectToAction(nameof(TasksForCoursesCreator), new { id = id });
         }
 
-        //Skata atvēršana - UM-04
+        //Skata atvēršana - lasāma materiāla izveidošanai UM-04
         [Authorize(Roles = "Admin, CourseCreator")]
-        public IActionResult CreateReadingTask(int? id)
+        public async Task<IActionResult> CreateReadingTask(int? id)
         {
+            //ja tēma nav noradīta
             if (id == null)
             {
                 return NotFound();
+            }
+
+            //atrast tēmu
+            var topic = await _context.Topics
+                                .Where(t => t.Id == id)
+                                .Include(t => t.Course.User)
+                                .FirstOrDefaultAsync();
+
+            //tēma neeksistē - kļūda
+            if (topic == null)
+            {
+                return NotFound();
+            }
+
+            //Ja uzdevuma izveidošanai mēģina piekļūt tas, kurš nav kursa autors vai administrators - kļūda
+            if (User.IsInRole("CourseCreator"))
+            {
+                var currentUserId = User.Identity.GetUserId();
+
+                if (topic.Course.User.Id != currentUserId)
+                {
+                    return NotFound();
+                }
             }
 
             var vm = new CreateOrEditTaskVM
@@ -394,13 +442,37 @@ namespace ProgrammingCoursesApp
             return View("ReadTaskCreateOrEdit", vm);
         }
 
-        //Skata atvēršana - UM-05
+        //Skata atvēršana - video materiāla izveidošanai UM-05
         [Authorize(Roles = "Admin, CourseCreator")]
-        public IActionResult CreateVideoTask(int? id)
+        public async Task<IActionResult> CreateVideoTask(int? id)
         {
+            //ja tēma nav noradīta
             if (id == null)
             {
                 return NotFound();
+            }
+
+            //atrast tēmu
+            var topic = await _context.Topics
+                                .Where(t => t.Id == id)
+                                .Include(t => t.Course.User)
+                                .FirstOrDefaultAsync();
+
+            //tēma neeksistē - kļūda
+            if (topic == null)
+            {
+                return NotFound();
+            }
+
+            //Ja uzdevuma izveidošanai mēģina piekļūt tas, kurš nav kursa autors vai administrators - kļūda
+            if (User.IsInRole("CourseCreator"))
+            {
+                var currentUserId = User.Identity.GetUserId();
+
+                if (topic.Course.User.Id != currentUserId)
+                {
+                    return NotFound();
+                }
             }
 
             var vm = new CreateOrEditTaskVM
@@ -492,7 +564,7 @@ namespace ProgrammingCoursesApp
             return PartialView("PossibleAnswer", newAnswer);
         }
 
-        //Skata atvēršana (video, lasamais materiāls vai jautājums)
+        //Skata atvēršana (video, lasama materiāla vai jautājuma rediģēšanai)
         [Authorize(Roles = "Admin, CourseCreator")]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -504,10 +576,23 @@ namespace ProgrammingCoursesApp
             //ja uzdevums neeksistē - kļūda
             var task = await _context.Tasks
                         .Include(t => t.TopicBlock)
-                        .FirstOrDefaultAsync(t => t.Id == id);
+                        .Include(t => t.TopicBlock.Topic.Course.User)
+                        .Where(t => t.Id == id)
+                        .FirstOrDefaultAsync();
             if (task == null)
             {
                 return NotFound();
+            }
+
+            //Ja uzdevuma izveidošanai mēģina piekļūt tas, kurš nav kursa autors vai administrators - kļūda
+            if (User.IsInRole("CourseCreator"))
+            {
+                var currentUserId = User.Identity.GetUserId();
+
+                if (task.TopicBlock.Topic.Course.User.Id != currentUserId)
+                {
+                    return NotFound();
+                }
             }
 
             var vm = new CreateOrEditTaskVM
