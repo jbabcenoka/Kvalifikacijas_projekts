@@ -406,20 +406,20 @@ namespace ProgrammingCoursesApp
                 }
             }
 
-            //kārtas numurs tiek piešķirts pēdējais
-            var topicBlocks = await _context.TopicBlocks.Where(t => t.TopicId == id).ToListAsync();
-            var maxDisplayOrder = topicBlocks == null || !topicBlocks.Any() ? 0 : topicBlocks.Max(x => x.DisplayOrder);
-
-            var topicBlock = new TopicBlock();
-            topicBlock.Points = readTask.Points;
-            topicBlock.DisplayOrder = maxDisplayOrder + 1;
-            topicBlock.Topic = topic;
-            readTask.TopicBlock = topicBlock;
-
             if (ModelState.IsValid)
             {
                 try
                 {
+                    //kārtas numurs tiek piešķirts pēdējais
+                    var topicBlocks = await _context.TopicBlocks.Where(t => t.TopicId == id).ToListAsync();
+                    var maxDisplayOrder = topicBlocks == null || !topicBlocks.Any() ? 0 : topicBlocks.Max(x => x.DisplayOrder);
+
+                    var topicBlock = new TopicBlock();
+                    topicBlock.Points = readTask.Points;
+                    topicBlock.DisplayOrder = maxDisplayOrder + 1;
+                    topicBlock.Topic = topic;
+                    readTask.TopicBlock = topicBlock;
+
                     await _context.TopicBlocks.AddAsync(topicBlock);
                     await _context.Tasks.AddAsync(readTask);
 

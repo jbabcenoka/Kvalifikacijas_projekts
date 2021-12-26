@@ -8,8 +8,9 @@
     <link rel="stylesheet" href="~/css/site.css" />
 </head>
 <body>
+    @await RenderSectionAsync("Styles", required: false)
     <header>
-        <img src="~/lu_words3.jpg" alt="Sample Photo" />
+        <img src="~/photo-2.jpg" alt="Sample Photo" />
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Courses</a>
@@ -49,7 +50,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2021 - ProgrammingCoursesApp - Jevgeņija Babčenoka, st.ap. jb19045
+            &copy; 2022 - ProgrammingCoursesApp - Jevgeņija Babčenoka, st.ap. jb19045
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
