@@ -4,8 +4,13 @@
     ViewData["Title"] = "Users administration";
 }
 
-<h1>Users administration</h1>
+@section Styles {
+    <link href="~/css/usersAdministration.css" rel="stylesheet" type="text/css" />
+}
 
+<h2 class="viewDescriptions">Users administration</h2>
+
+<hr />
 <input class="search-input" type="text" id="userNameInput" onkeyup="searchUser('userNameInput')" placeholder="Search for user name..">
 <input class="search-input" type="text" id="userEmailInput" onkeyup="searchUser('userEmailInput')" placeholder="Search for email..">
 
@@ -30,7 +35,7 @@
                     <a class="btn btn-primary" asp-action="Edit" asp-route-id="@user.Id">Edit</a>
                 </td>
                 <td>
-                    <a class="btn btn-danger delete-button" onclick="return deleteUser('@user.Id','@user.Email')">
+                    <a class="btn btn-danger" onclick="return deleteUser('@user.Id','@user.Email')">
                         Delete
                     </a>
                 </td>
@@ -39,138 +44,10 @@
     </tbody>
 </table>
 
-<script>
-    function deleteUser(userId, userEmail)
-    {
-        if (confirm('Are you sure you want to delete selected user? '
-            + 'User results and all user courses will be deleted if user is courses creator or administrator.')) {
-            $.ajax({
-                type: "POST",
-                url: '@Url.Action(nameof(AdminController.DeleteUser), "Admin")',
-                data: JSON.stringify(userId),
-                contentType: 'application/json; charset=utf-8',
-                dataType: 'json',
-                success: function (result) {
-                    if (result.isDeleted)
-                    {
-                        alert("User successfully deleted");
-                        removeUserFromTable(userEmail);
-                    }
-                    else
-                    {
-                        alert("Failed to delete user");
-                    }
-                }
-            });
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    function removeUserFromTable(userEmail) {
-        var rows = document.getElementById("users-table").getElementsByTagName("tr");
-        var cell;
-
-        for (var i = 0; i < rows.length; i++) {
-            cell = rows[i].getElementsByTagName("td")[1];
-
-            if (cell) {
-                value = cell.innerText || cell.textContent;
-
-                if (value.normalize() === userEmail.normalize())
-                {
-                    document.getElementById("users-table").deleteRow(i);
-                    return;
-                }
-            }
-        }
-    }
-
-    function searchUser(inputId)
-    {
-        var filterInput = document.getElementById(inputId).value.toUpperCase();
-        var rows = document.getElementById("users-table").getElementsByTagName("tr");
-        var cell, column;
-
-        if (inputId == 'userNameInput')
-        {
-            column = 0;
-        }
-        else if (inputId == 'userEmailInput')
-        {
-            column = 1;
-        }
-
-        for (var i = 0; i < rows.length; i++)
-        {
-            cell = rows[i].getElementsByTagName("td")[column];
-
-            if (cell)
-            {
-                value = cell.innerText || cell.textContent;
-
-                if (value.toUpperCase().indexOf(filterInput) > -1)
-                {
-                    rows[i].style.display = "";
-                }
-                else
-                {
-                    rows[i].style.display = "none";
-                }
-            }
-        }
-    }
-</script>
-
-<style>
-    h1 {
-        text-align: center;
-    }
-
-    #users-table {
-        font-family: Mukta, sans-serif;
-        margin-top: 40px;
-        margin-bottom: 40px;
-        border-collapse: collapse;
-        box-shadow: 0px 5px 10px #cfd9e4;
-        background-color: #ffffff;
-        text-align: left;
-        overflow: hidden;
-        width: 100%;
-    }
-
-    thead {
-        box-shadow: 0 5px 10px #cfd9e4;
-    }
-
-    th {
-        padding: 20px 40px;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        font-size: 12px;
-        font-weight: 900;
-    }
-
-    td {
-        padding: 20px 40px;
-    }
-
-    tr:nth-child(even) {
-        background-color: #e3f1f2;
-    }
-
-    .search-input {
-        margin-top: 40px;
-        border: 2px solid #95c5ff;
-        border-radius: 3px;
-        box-shadow: 0 5px 10px #cfd9e4;
-        padding: 7px;
-        margin-right: 10px;
-    }
-
-    delete-button {
-        color: #ffffff;
-    }
-</style>
+@section Scripts {
+    <script>
+        var deleteAction = '@Url.Action(nameof(AdminController.DeleteUser), "Admin")';
+    </script>
+    
+    <script src="~/js/usersAdministration.js" type="text/javascript"></script>
+}

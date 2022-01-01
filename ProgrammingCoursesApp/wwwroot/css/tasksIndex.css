@@ -1,0 +1,46 @@
+﻿.resultBox {
+    margin-top: 30px;
+    margin-bottom: 20px;
+    padding: 10px 0px 10px 30px;
+    box-shadow: 10px 10px 5px 2px rgb(0 0 255 / 20%);
+}
+
+.correctResult {
+    background-color: rgb(144,238,144,0.4);
+}
+
+.incorrectResult {
+    background-color: #e9c8c8;
+}
+
+#next-button {
+    color: white;
+    float: right;
+    margin-right: 1%;
+}
+
+#submit-tasks {
+    float: right;
+    margin-right: 10%;
+}
+
+.readed {
+    background-color: powderblue;
+    color: #000;
+}
+
+.canImproveResult {
+    background-color: #e9c8c8;
+    color: #000;
+}
+
+.answer {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    margin-left: 50%;
+    color: white !important;
+}
+
+.nav-tab-link.active {
+    background-color: whitesmoke !important;
+}

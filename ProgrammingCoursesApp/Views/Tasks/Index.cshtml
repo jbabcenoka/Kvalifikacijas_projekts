@@ -4,6 +4,11 @@
     ViewData["Title"] = "Topic " + Model.TopicName;
 }
 
+@section Styles {
+    <link href="~/css/tasksCommon.css" rel="stylesheet" type="text/css" />
+    <link href="~/css/tasksIndex.css" rel="stylesheet" type="text/css" />
+}
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 
@@ -86,7 +91,7 @@
     }
 </script>
 
-<h2>@Model.TopicName</h2>
+<h2 class="viewDescriptions">@Model.TopicName</h2>
 
 @if (Model.Blocks == null || !Model.Blocks.Any())
 {
@@ -135,7 +140,7 @@ else
                     {
                         var task = (ReadTask)block.TopicBlock.Task;
                         <div class="read-content task-content">
-                            <h4>@task.Name</h4>
+                            <h4 class="task-name">@task.Name</h4>
                             <div>@Html.Raw(task.Text)</div>
                         </div>
                     }
@@ -143,7 +148,7 @@ else
                     {
                         var task = (VideoTask)block.TopicBlock.Task;
                         <div class="task-content">
-                            <h4>@task.Name</h4>
+                            <h4 class="task-name">@task.Name</h4>
                         </div>
                         <div class="video-content task-content">
                             <iframe src="@task.Link"
@@ -158,10 +163,10 @@ else
                         <div class="exercise-content task-content">
                             @if (!string.IsNullOrEmpty(task.QuestionText))
                             {
-                                <h4>@task.Name</h4>
+                                <h4 class="task-name">@task.Name</h4>
                             }
 
-                            <h4>@task.QuestionText</h4>
+                            <h4 class="task-name">@task.QuestionText</h4>
 
                             <div id="answers-@task.Id">
                                 @foreach (var answer in block.PossibleAnswers)
@@ -203,120 +208,3 @@ else
         </div>
     </form>
 }
-
-<style>
-
-    h2 {
-        display: flex;
-        justify-content: center;
-        margin-top: 50px;
-        margin-bottom: 30px;
-    }
-
-    .points-box {
-        border: 2px solid rebeccapurple;
-        box-shadow: 12px 12px 2px 1px rgba(0, 0, 255, .2);
-        padding: 10px;
-        position: relative;
-        top: 25px;
-        font-size: 1.1em;
-        font-weight: 700;
-        left: 80%;
-    }
-
-    .empty-tab {
-        margin-bottom: 40px;
-    }
-
-    .nav-tab-link {
-        font-size: 18px;
-        margin-right: 5px;
-        color: #1234d5;
-        cursor: default;
-    }
-
-    .resultBox {
-        margin-top: 30px;
-        margin-bottom: 20px;
-        padding: 10px 0px 10px 30px;
-        box-shadow: 10px 10px 5px 2px rgb(0 0 255 / 20%);
-    }
-
-    .correctResult {
-        background-color: rgb(144,238,144,0.4);
-    }
-
-    .incorrectResult {
-        background-color: #e9c8c8;
-    }
-
-    .answer-label {
-        margin-left: 10px;
-    }
-
-    h4 {
-        margin-bottom: 20px;
-    }
-
-    .task-content {
-        font-size: 18px;
-        width: 70%;
-        margin-top: 10px;
-    }
-
-    .video-content {
-        overflow: hidden;
-        position: relative;
-        padding-top: 38.76%;
-    }
-
-    iframe {
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        left: 0;
-        bottom: 0;
-        right: 0;
-    }
-
-    .buttons-panel {
-        margin-top: 70px;
-        margin-bottom: 100px;
-    }
-
-    #next-button {
-        color: white;
-        float: right;
-        margin-right: 1%;
-    }
-
-    #submit-tasks {
-        float: right;
-        margin-right: 10%;
-    }
-
-    .readed {
-        background-color: powderblue;
-        color: #000;
-    }
-
-    .canImproveResult {
-        background-color: #e9c8c8;
-        color: #000;
-    }
-
-    label {
-        display: inline;
-    }
-
-    .answer {
-        margin-top: 20px;
-        margin-bottom: 20px;
-        margin-left: 50%;
-        color: white !important;
-    }
-
-    .nav-tab-link.active {
-        background-color: whitesmoke !important;
-    }
-</style>

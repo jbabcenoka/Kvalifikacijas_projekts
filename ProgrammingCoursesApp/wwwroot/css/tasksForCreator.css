@@ -1,0 +1,20 @@
+﻿.empty-content {
+    margin-bottom: 40px;
+}
+
+.task-view {
+    margin-bottom: 50px;
+}
+
+.nav-tab-link {
+    background-color: #ffffff;
+}
+
+.task-buttons {
+    margin-top: 20px;
+}
+
+.create-button {
+    float: right;
+    margin-right: 5px;
+}

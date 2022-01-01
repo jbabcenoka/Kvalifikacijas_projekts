@@ -1,7 +1,19 @@
-﻿body {
-}
-
+﻿
 .profile-buttons {
     margin-top: 20px;
     margin-bottom: 20px;
+}
+
+/*skatu nosaukumi <h2></h2>, piemērām "Rediģēt kursu, tēmas izveidošana.."*/
+.viewDescriptions {
+    display: flex;
+    justify-content: center;
+    margin-top: 50px;
+    margin-bottom: 30px;
+}
+
+/*pogu attēlošana apakšā*/
+.buttons-panel {
+    margin-top: 70px;
+    margin-bottom: 100px;
 }

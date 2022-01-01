@@ -1,0 +1,33 @@
+﻿.card {
+    cursor: default;
+    border: 1px solid #bbc3c6;
+}
+
+.material-icons {
+    position: absolute;
+    top: 5px;
+    left: 10px;
+    color: #000000;
+}
+
+.card-title {
+    font-size: 25px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin-bottom: 0px;
+}
+
+.card:hover .card-header {
+    background-color: #c3f2f6;
+}
+
+.card-header {
+    font-size: 25px;
+    background-color: #cfdfe0;
+}
+
+.create-course {
+    text-align: end;
+    margin-top: 70px;
+    margin-bottom: 100px;
+}

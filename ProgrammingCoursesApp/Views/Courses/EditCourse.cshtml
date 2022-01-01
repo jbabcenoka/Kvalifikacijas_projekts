@@ -8,7 +8,7 @@
     var cantPublish = !Model.IsOpened && (openedTopics == null || !openedTopics.Any());
 }
 
-<h2>Course "@(Model.Name)" edit</h2>
+<h2 class="viewDescriptions">Course "@(Model.Name)" edit</h2>
 
 <hr />
 <div class="row">
@@ -39,35 +39,23 @@
     </div>
 </div>
 
-<script type="text/javascript">
-    function publishCourse(cantPublish) {
-        if (cantPublish)
-        {
-            let unpublishCourse = document.getElementById("IsOpened").checked;
-
-            if (unpublishCourse) { //lietotājs atzīmēja publicēt kursu
-                alert('You can`t publish course, because it doesn`t contain any opened topic.');
-                return false;
-            }
-            else
-            {
-                return true;
-            }
-        }
-
-        return true;
-    }
-</script>
-
-<style>
-    h2 {
-        display: flex;
-        justify-content: center;
-        margin-top: 50px;
-        margin-bottom: 30px;
-    }
-</style>
-
 @section Scripts {
+    <script type="text/javascript">
+        function publishCourse(cantPublish) {
+            if (cantPublish) {
+                let unpublishCourse = document.getElementById("IsOpened").checked;
+
+                if (unpublishCourse) { //lietotājs atzīmēja publicēt kursu
+                    alert('You can`t publish course because it doesn`t contain any opened topic.');
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }
+
+            return true;
+        }
+    </script>
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

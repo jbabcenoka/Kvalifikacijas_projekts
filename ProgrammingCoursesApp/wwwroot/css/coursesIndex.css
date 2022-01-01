@@ -1,0 +1,36 @@
+﻿.card {
+    border: 1px solid #bbc3c6;
+}
+
+.card-link {
+    color: #403c3c;
+    text-decoration: none;
+}
+
+    .card-link:hover {
+        color: #000000;
+    }
+
+.card:hover .card-header {
+    background-color: #b5d1ea;
+}
+
+.card:hover {
+    border: 1px solid #ccc;
+    box-shadow: 5px 0px 30px 10px rgb(0 0 0 / 10%);
+}
+
+.card-title {
+    font-size: 25px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin-bottom: 0px;
+}
+
+.card-header {
+    background-color: #c4e6f7;
+}
+
+.card-footer {
+    height: 60px;
+}

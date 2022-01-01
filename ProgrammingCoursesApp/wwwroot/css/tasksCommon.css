@@ -1,0 +1,48 @@
+﻿.points-box {
+    border: 2px solid rebeccapurple;
+    box-shadow: 12px 12px 2px 1px rgba(0, 0, 255, .2);
+    padding: 10px;
+    position: relative;
+    top: 25px;
+    font-size: 1.1em;
+    font-weight: 700;
+    left: 80%;
+}
+
+.nav-tab-link {
+    font-size: 18px;
+    margin-right: 5px;
+    color: #1234d5;
+    cursor: default;
+}
+
+.answer-label {
+    margin-left: 10px;
+    display: inline;
+}
+
+.task-name {
+    margin-bottom: 20px;
+}
+
+.task-content {
+    word-wrap: break-word;
+    font-size: 18px;
+    width: 70%;
+    margin-top: 10px;
+}
+
+.video-content {
+    overflow: hidden;
+    position: relative;
+    padding-top: 38.76%;
+}
+
+iframe {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    right: 0;
+}
