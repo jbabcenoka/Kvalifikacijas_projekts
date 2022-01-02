@@ -12,36 +12,45 @@
 <h2 class="viewDescriptions">My courses</h2>
 
 <hr />
-<div class="row row-flex">
-    @foreach (var item in Model)
-    {
-        <div class="col-sm-6" style="margin-top:50px">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title text-center text-dark">@Html.DisplayFor(modelItem => item.Name)</h5>
-                    <i class="material-icons">@(item.IsOpened ? "visibility" : "visibility_off")</i>
-                </div>
-                <div class="card-body bg-white">
-                    <p class="card-text text-justify">@Html.DisplayFor(modelItem => item.Description)</p>
-                </div>
-                @if (User.IsInRole("Admin"))
-                {
-                    <div class="card-footer">
-                        <p class="card-text text-justify">Course`s creator: @Html.DisplayFor(modelItem => item.User.UserName)</p>
+@if (!Model.Any())
+{
+    <div class="tab-content empty-content">
+        You don`t have any course.
+    </div>
+}
+else
+{
+    <div class="row row-flex">
+        @foreach (var item in Model)
+        {
+            <div class="col-sm-6" style="margin-top:50px">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title text-center text-dark">@Html.DisplayFor(modelItem => item.Name)</h5>
+                        <i class="material-icons">@(item.IsOpened ? "visibility" : "visibility_off")</i>
                     </div>
-                }
-                <div class="card-footer text-center">
-                    <a asp-controller="Topics" asp-action="TopicsForCreator" asp-route-id="@item.Id" class="btn btn-outline-primary" width="150px">Content</a>
-                    <a asp-action="EditCourse" asp-route-id="@item.Id" class="btn btn-outline-info" width="150px">Edit description</a>
-                    @if (!item.IsOpened)
+                    <div class="card-body bg-white">
+                        <p class="card-text text-justify">@Html.DisplayFor(modelItem => item.Description)</p>
+                    </div>
+                    @if (User.IsInRole("Admin"))
                     {
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to delete selected course?')" width="150px">Delete</a>
+                        <div class="card-footer">
+                            <p class="card-text text-justify">Course`s creator: @Html.DisplayFor(modelItem => item.User.UserName)</p>
+                        </div>
                     }
+                    <div class="card-footer text-center">
+                        <a asp-controller="Topics" asp-action="TopicsForCreator" asp-route-id="@item.Id" class="btn btn-outline-primary" width="150px">Content</a>
+                        <a asp-action="EditCourse" asp-route-id="@item.Id" class="btn btn-outline-info" width="150px">Edit description</a>
+                        @if (!item.IsOpened)
+                        {
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to delete selected course?')" width="150px">Delete</a>
+                        }
+                    </div>
                 </div>
             </div>
-        </div>
-    }
-</div>
+        }
+    </div>
+}
 
 <p class="create-course">
     <a class="btn btn-primary" asp-action="CreateCourse">Create new course</a>

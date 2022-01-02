@@ -281,18 +281,6 @@ namespace ProgrammingCoursesApp
             topicBlock.Topic = topic;
             exercise.TopicBlock = topicBlock;
 
-            //Ja tēma satur mazāk par diviem atbilžu variantiem - kļūda
-            if (possibleAnswers == null || possibleAnswers.Count < 2)
-            {
-                return NotFound();
-            }
-
-            //Ja jautājums nesatur pareizās atbildes - kļūda
-            if (exercise.AnswerId == null)
-            {
-                return NotFound();
-            }
-
             try
             {
                 await _context.TopicBlocks.AddAsync(topicBlock);
@@ -658,18 +646,6 @@ namespace ProgrammingCoursesApp
                 {
                     return NotFound();
                 }
-            }
-
-            //Ja tēma satur mazāk par diviem atbilžu variantiem
-            if (possibleAnswers == null || possibleAnswers.Count < 2)
-            {
-                return NotFound();
-            }
-
-            //Ja uzdevums nesatur pareizās atbildes - kļūda
-            if (exercise.AnswerId == null)
-            {
-                return NotFound();
             }
 
             if (ModelState.IsValid)

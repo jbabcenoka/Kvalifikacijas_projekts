@@ -45,9 +45,10 @@ namespace ProgrammingCoursesApp.Controllers
                                 .Where(t => t.CourseId == id && t.IsOpened)
                                 .OrderBy(t => t.DisplayOrder)
                                 .ToListAsync();
-
+            
             Dictionary<int, double> userTopicsScores = new Dictionary<int, double>();
 
+            //iegūt lietotāja rezultātu par katru tēmu
             if (User.Identity.IsAuthenticated)
             {
                 foreach(var topic in openedTopics)
@@ -56,9 +57,11 @@ namespace ProgrammingCoursesApp.Controllers
                 
                     var tasksIds = await _context.TopicBlocks.Where(t => t.TopicId == topic.Id).Select(t => t.Task.Id).ToListAsync();
 
-                    int userPoints = 0;
+                    //tiek izrēķināts katra uzdevuma punktu skats
+                    int userPoints = 0;  //lietotāja tēmas rezutāts
                     foreach(var taskId in tasksIds)
                     {
+                        //rezultāts par uzdevumu (lasāmais materiāls, video materiāls, jautājums)
                         var pointsForTask = await _context.Results
                             .Where(x => x.TaskId == taskId && x.User.Id == User.Identity.GetUserId())
                             .Select(x => x.Points)

@@ -20,5 +20,14 @@ namespace ProgrammingCoursesApp.Data
         public DbSet<ReadTask> ReadTask { get; set; }
         public DbSet<PossibleAnswer> PossibleAnswers { get; set; }
         public DbSet<Result> Results { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Task>()
+                .Property("Discriminator")
+                .HasMaxLength(9);
+        }
     }
 }

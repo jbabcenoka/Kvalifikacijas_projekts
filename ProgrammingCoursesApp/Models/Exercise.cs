@@ -12,6 +12,6 @@ namespace ProgrammingCoursesApp.Models
         public ICollection<PossibleAnswer> PossibleAnswers { get; set; }
         
         [NotMapped, Required, DisplayName("Answer")]
-        public int? AnswerId { get; set; }
+        public int AnswerId { get; set; }
     }
 }

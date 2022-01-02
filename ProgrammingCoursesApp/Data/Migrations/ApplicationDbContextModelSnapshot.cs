@@ -17,7 +17,7 @@ namespace ProgrammingCoursesApp.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "5.0.11")
+                .HasAnnotation("ProductVersion", "6.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
@@ -252,7 +252,7 @@ namespace ProgrammingCoursesApp.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Courses", (string)null);
+                    b.ToTable("Courses");
                 });
 
             modelBuilder.Entity("ProgrammingCoursesApp.Models.PossibleAnswer", b =>
@@ -278,7 +278,7 @@ namespace ProgrammingCoursesApp.Data.Migrations
 
                     b.HasIndex("ExerciseId");
 
-                    b.ToTable("PossibleAnswers", (string)null);
+                    b.ToTable("PossibleAnswers");
                 });
 
             modelBuilder.Entity("ProgrammingCoursesApp.Models.Result", b =>
@@ -309,7 +309,7 @@ namespace ProgrammingCoursesApp.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Results", (string)null);
+                    b.ToTable("Results");
                 });
 
             modelBuilder.Entity("ProgrammingCoursesApp.Models.Task", b =>
@@ -322,7 +322,8 @@ namespace ProgrammingCoursesApp.Data.Migrations
 
                     b.Property<string>("Discriminator")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(9)
+                        .HasColumnType("nvarchar(9)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -338,7 +339,7 @@ namespace ProgrammingCoursesApp.Data.Migrations
                         .IsUnique()
                         .HasFilter("[TopicBlockId] IS NOT NULL");
 
-                    b.ToTable("Tasks", (string)null);
+                    b.ToTable("Tasks");
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("Task");
                 });
@@ -374,7 +375,7 @@ namespace ProgrammingCoursesApp.Data.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.ToTable("Topics", (string)null);
+                    b.ToTable("Topics");
                 });
 
             modelBuilder.Entity("ProgrammingCoursesApp.Models.TopicBlock", b =>
@@ -398,7 +399,7 @@ namespace ProgrammingCoursesApp.Data.Migrations
 
                     b.HasIndex("TopicId");
 
-                    b.ToTable("TopicBlocks", (string)null);
+                    b.ToTable("TopicBlocks");
                 });
 
             modelBuilder.Entity("ProgrammingCoursesApp.Models.Exercise", b =>
