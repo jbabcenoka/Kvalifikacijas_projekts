@@ -17,6 +17,11 @@
     margin-bottom: 0px;
 }
 
+.card:hover {
+    border: 1px solid #ccc;
+    box-shadow: 5px 0px 30px 10px rgb(0 0 0 / 10%);
+}
+
 .card:hover .card-header {
     background-color: #c3f2f6;
 }

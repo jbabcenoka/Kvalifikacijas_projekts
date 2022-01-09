@@ -8,10 +8,6 @@
     var cantPublish = !Model.IsOpened && (tasks == null || !tasks.Any());
 }
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/4.5.6/tinymce.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/4.5.6/jquery.tinymce.min.js"></script>
-
 <h2 class="viewDescriptions">Edit topic "@Model.Name"</h2>
 
 <h4>Topic</h4>
@@ -48,32 +44,24 @@
 </div>
 
 @section Scripts {
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    
+    <script type="text/javascript">
+        function publishTopic(cantPublish) {
+            let publishTopic = document.getElementById("IsOpened").checked;
+
+            if (publishTopic == true && cantPublish) {
+                alert('You can`t publish topic because it doesn`t contain any task.');
+                return false;
+            }
+
+            if (@Model.IsLastOpenedTopic.ToString().ToLower()) {
+                return confirm('Are you sure you want to unpublish the last published topic? Course will be automatically unpublished because course will not contain opened topics.');
+            }
+
+            return true;
+        }
+    </script>
+
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
-
-<script type="text/javascript">
-    function publishTopic(cantPublish) {
-        let publishTopic = document.getElementById("IsOpened").checked;
-
-        if (publishTopic == true && cantPublish) {
-            alert('You can`t publish topic because it doesn`t contain any task.');
-            return false;
-        }
-
-        if (@Model.IsLastOpenedTopic.ToString().ToLower()) {
-            return confirm('Are you sure you want to unpublish the last published topic? Course will be automatically unpublished because course will not contain opened topics.');
-        }
-
-        return true;
-    }
-</script>
-
-<script>
-
-    tinyMCE.init({
-        selector: '.editorHtml',
-        mode: "textareas",
-        theme: "modern",
-    });
-
-</script>

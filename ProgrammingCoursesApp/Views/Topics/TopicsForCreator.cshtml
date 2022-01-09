@@ -11,9 +11,6 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 }
 
-<script src="https://code.jquery.com/jquery-3.6.0.js"></script>
-<script src="https://code.jquery.com/ui/1.13.0/jquery-ui.js"></script>
-
 <h2 class="viewDescriptions">Course "@Model.CourseName" topics</h2>
 
 <hr />
@@ -58,31 +55,14 @@ else
     <a class="btn btn-primary create-topic" asp-action="CreateTopic" asp-route-id="@Model.CourseId">Create topic</a>
 </div>
 
-<script type="text/javascript">
-    function GetTopicsInOrder() {
-        var list = new Array();
-        var elements = document.getElementsByName('item.Id');
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.js"></script>
+    
+    <script type="text/javascript">
+        var changeTopicsOrderAction = "@Url.Action(nameof(TopicsController.ChangeTopicsOrder), "Topics")";
+        var courseId = @Model.CourseId;
+    </script>
 
-        Array.prototype.forEach.call(elements, (function (item) {
-            list.push(item.value);
-        }));
-
-        return list;
-    }
-
-    $("#sortable").sortable({
-        stop: function (event, ui) {
-            $.ajax({
-                type: "GET",
-                url: "@Url.Action(nameof(TopicsController.ChangeTopicsOrder), "Topics")",
-                contentType: "application/json; charset=utf-8",
-                traditional: true,
-                data: { "id": @Model.CourseId, "topicsInOrder": GetTopicsInOrder() },
-                dataType: "json",
-                failure: function (error) {
-                    alert(error);
-                }
-            })
-        }
-    });
-</script>
+    <script src="~/js/topicsForCreator.js" type="text/javascript"></script>
+}

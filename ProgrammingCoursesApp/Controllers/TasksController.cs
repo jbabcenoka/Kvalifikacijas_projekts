@@ -88,10 +88,10 @@ namespace ProgrammingCoursesApp
                             .Select(x => new { x.Points, x.UserAnswer })
                             .FirstOrDefaultAsync();
 
-                    //ja lietotājam ir reltāts par uzdevumu - attēlot lietotāja atbildi un rezultātu
+                    //ja lietotājam ir rezultāts par uzdevumu - attēlot lietotāja atbildi un rezultātu
                     if (userAnswer != null) 
                     {
-                        blockTask.SelectedAnswer = userAnswer.UserAnswer.Id;
+                        blockTask.SelectedAnswer = userAnswer.UserAnswer?.Id;
                         blockTask.UserScore = userAnswer.Points;
                     }
                 }
@@ -271,6 +271,19 @@ namespace ProgrammingCoursesApp
                 }
             }
 
+            if (possibleAnswers.Count < 2)
+            {
+                var vm = new CreateOrEditTaskVM
+                {
+                    IsCreation = true,
+                    Exercise = exercise,
+                    PossibleAnswers = possibleAnswers.Count == 0 ? new List<PossibleAnswer>() : possibleAnswers,
+                    TopicId = id.Value
+                };
+
+                return View("ExerciseTaskCreateOrEdit", vm);
+            }
+
             var topicBlock = new TopicBlock();  //izveidot jauno tēmas bloku
 
             //kārtas numurs tiek piešķirts pēdējais
@@ -405,7 +418,7 @@ namespace ProgrammingCoursesApp
                     var topicBlock = new TopicBlock();
                     topicBlock.Points = readTask.Points;
                     topicBlock.DisplayOrder = maxDisplayOrder + 1;
-                    topicBlock.Topic = topic;
+                    topicBlock.Topic = topic;   
                     readTask.TopicBlock = topicBlock;
 
                     await _context.TopicBlocks.AddAsync(topicBlock);
@@ -963,7 +976,10 @@ namespace ProgrammingCoursesApp
         {
             foreach (var block in Blocks.Where(x => x.IsViewed))
             {
-                var topicBlock = await _context.TopicBlocks.Include(t => t.Task).Where(t => t.Id == block.TopicBlock.Id).FirstOrDefaultAsync();
+                var topicBlock = await _context.TopicBlocks
+                    .Include(t => t.Task)
+                    .Where(t => t.Id == block.TopicBlock.Id)
+                    .FirstOrDefaultAsync();
 
                 if (topicBlock != null) //topic block ir atrasts
                 {
@@ -971,7 +987,7 @@ namespace ProgrammingCoursesApp
                             .Where(t => t.TaskId == topicBlock.Task.Id && t.User.Id == User.Identity.GetUserId())
                             .FirstOrDefaultAsync(); //atrast lietotāja rezultātu
 
-                    if (taskResult == null) //lietotājam nav rezultāta par šo uzdevumu - izveidot jauno
+                    if (taskResult == null) //lietotājam nav rezultāta par šo uzdevumu - izveidot jaunu
                     {
                         var newResult = new Result
                         {
@@ -981,6 +997,8 @@ namespace ProgrammingCoursesApp
                         if (topicBlock.Task.GetType() == typeof(ReadTask) || topicBlock.Task.GetType() == typeof(VideoTask))
                         {
                             newResult.Points = topicBlock.Points;
+                            newResult.User = await _context.Users.FirstOrDefaultAsync(u => u.Id == User.Identity.GetUserId());
+                            _context.Results.Add(newResult);
                         }
                         else //ir uzdevums
                         {
@@ -988,32 +1006,31 @@ namespace ProgrammingCoursesApp
                             {
                                 var userAnswer = await _context.PossibleAnswers.FindAsync(block.SelectedAnswer);
 
-                                if (userAnswer != null) //ja lietotāja atbilde eksistē datubāzē
+                                if (userAnswer != null) //ja atbilde eksistē datubāzē
                                 {
                                     newResult.Points = userAnswer.IsCorrect ? topicBlock.Points : 0;
+                                    newResult.UserAnswer = userAnswer;
+                                    newResult.User = await _context.Users.FirstOrDefaultAsync(u => u.Id == User.Identity.GetUserId());
+                                    _context.Results.Add(newResult);
                                 }
-
-                                newResult.UserAnswer = userAnswer;
                             }
                         }
-
-                        newResult.User = await _context.Users.FirstOrDefaultAsync(u => u.Id == User.Identity.GetUserId());
-
-                        _context.Results.Add(newResult);
                     }
                     else //atrasts rezultāts - atjaunot rezultātu
                     {
                         if (topicBlock.Task.GetType() == typeof(Exercise))
                         {
-                            var userAnswer = await _context.PossibleAnswers.FindAsync(block.SelectedAnswer);
-
-                            if (userAnswer != null) //ja lietotāja atbilde eksistē datubāzē
+                            if (block.SelectedAnswer != null) //ja lietotājs ir atbildējis
                             {
-                                taskResult.Points = userAnswer.IsCorrect ? topicBlock.Points : 0;
-                            }
+                                var userAnswer = await _context.PossibleAnswers.FindAsync(block.SelectedAnswer);
 
-                            taskResult.UserAnswer = userAnswer;
-                            _context.Results.Update(taskResult);
+                                if (userAnswer != null) //ja atbilde eksistē datubāzē
+                                {
+                                    taskResult.Points = userAnswer.IsCorrect ? topicBlock.Points : 0; //piešķirt jaunus punktus
+                                    taskResult.UserAnswer = userAnswer;
+                                    _context.Results.Update(taskResult);
+                                }
+                            }
                         }
                     }
                     _context.SaveChanges();

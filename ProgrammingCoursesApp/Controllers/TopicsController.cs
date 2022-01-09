@@ -94,11 +94,22 @@ namespace ProgrammingCoursesApp.Controllers
                 return NotFound();
             }
 
-            var course = await _context.Courses.FindAsync(id);
+            var course = await _context.Courses.Where(x => x.Id == id).Include(x => x.User).FirstOrDefaultAsync();
 
             if (course == null)
             {
                 return NotFound();
+            }
+
+            //kursa veidotājs var redzet tikai sava kursa tēmas
+            if (User.IsInRole("CourseCreator"))
+            {
+                var currentUserId = User.Identity.GetUserId();
+
+                if (course.User.Id != currentUserId)
+                {
+                    return NotFound();
+                }
             }
 
             //iegūt kursu ar tēmām
@@ -339,11 +350,21 @@ namespace ProgrammingCoursesApp.Controllers
                 return NotFound();
             }
 
-            var topic = await _context.Topics.FindAsync(id);
+            var topic = await _context.Topics.Where(x => x.Id == id).Include(x => x.Course.User).FirstOrDefaultAsync();
 
             if (topic == null) //tēma neeksistē
             {
                 return NotFound();
+            }
+
+            if (User.IsInRole("CourseCreator"))  //kursa veidotājs var dzēst tikai sava kursa tēmu
+            {
+                var currentUserId = User.Identity.GetUserId();
+
+                if (topic.Course.User.Id != currentUserId)
+                {
+                    return NotFound();
+                }
             }
 
             if (topic.IsOpened)
