@@ -88,6 +88,11 @@ namespace ProgrammingCoursesApp.Controllers
 
             if (user != null)
             {
+                if (user.Id == _userManager.GetUserId(User))
+                {
+                    return Json(new { isDeleted = false });
+                }
+
                 //dzēst visus lietotāja rezultātus
                 var results = await _context.Results.Where(x => x.User.Id == user.Id).ToListAsync();
                 foreach (var res in results)
